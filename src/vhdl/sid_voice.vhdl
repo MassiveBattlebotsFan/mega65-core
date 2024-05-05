@@ -151,6 +151,10 @@ begin
   -- "Hard Sync was accomplished by clearing the accumulator of an Oscillator
   -- based on the accumulator MSB of the previous oscillator."
   PhaseAcc:process(cpuclock)
+
+    variable signal_mux_var : unsigned(11 downto 0) := (others => '0');  -- VHDL is weird so we need a buffer
+    variable reset_cycle_ctr : unsigned(3 downto 0) := (others => '0');  -- Zero regs after 10 cycles
+    
   begin
     
     if rising_edge(cpuclock) then
@@ -168,10 +172,25 @@ begin
         -- the reset and test signal can stop the oscillator,
         -- stopping the oscillator is very useful when you want to play "samples"
         if ((reset = '1') or (test = '1') or ((sync = '1') and (PA_MSB_in_prev /= PA_MSB_in) and (PA_MSB_in = '0'))) then
+
+          if reset = '1' and reset_cycle_ctr < x"0B" then
+            reset_cycle_ctr := reset_cycle_ctr + 1;
+          end if;
+          
           accumulator <= (others => '0');
+          
+          if reset_cycle_ctr > x"0A" then
+            sawtooth <= (others => '0');
+            triangle <= (others => '0');
+            LFSR <= (others => '0');
+            pulse <= '1';
+          end if;
+                      
+          LFSR(0) <= LFSR(17) xor (LFSR(22) or reset or test);
         else
           -- accumulate the new phase (i.o.w. increment env_counter with the freq. value)
           accumulator <= accumulator + ("0" & frequency);
+          reset_cycle_ctr := (others => '0');
         end if;
         
         -----------------------------------------------------------------------------------------------------------------
@@ -188,7 +207,7 @@ begin
         -- accumulator to a 12-bit digital comparator. The output of the comparator was
         -- either a one or a zero. This single output was then sent to all 12 bits of
         -- the Waveform D/A. "
-        if ((accumulator(23 downto 12)) >= pulsewidth) then
+        if ((accumulator(23 downto 12)) >= pulsewidth) or (test = '1') then
           pulse <= '1';
         else
           pulse <= '0';
@@ -241,25 +260,45 @@ begin
         -- intermediate bits of the accumulator to keep the frequency content of the
         -- noise waveform relatively the same as the pitched waveforms.
         -- The upper 12-bits of the shift register were sent to the Waveform D/A."
-        noise	<= LFSR(22 downto 11);
-        -- the test signal can stop the oscillator,
-        -- stopping the oscillator is very useful when you want to play "samples"
-        if ((reset = '1') or (test = '1')) or LFSR = "00000000000000000000000" then
-          accu_bit_prev		<= '0';
-          -- the "seed" value (the value that eventually determines the output
-          -- pattern) may never be '0' otherwise the generator "locks up"
-          LFSR	<= "00000000000000000000001";
-        else
-          accu_bit_prev	<= accumulator(19);
-          -- when not equal to ...
-          if	(accu_bit_prev /= accumulator(19)) then
-            LFSR(22 downto 1)	<= LFSR(21 downto 0);
-            LFSR(0) 					<= LFSR(17) xor LFSR(22);  -- see Xilinx XAPP052 for maximal LFSR taps
+        noise	<= LFSR(20) & LFSR(18) & LFSR(14) & LFSR(11) & LFSR(9) & LFSR(5) & LFSR(2) & LFSR(0) & "0000";
+        
+        -- when not equal to ...
+        -- lfsr_noise[21],                                         
+        -- wave_out[11],                                           
+        -- lfsr_noise[19],                                         
+        -- wave_out[10],                                           
+        -- lfsr_noise[17:15],                                      
+        -- wave_out[9],                                            
+        -- lfsr_noise[13:12],                                      
+        -- wave_out[8],                                            
+        -- lfsr_noise[10],                                         
+        -- wave_out[7],                                            
+        -- lfsr_noise[8:6],                                        
+        -- wave_out[6],                                            
+        -- lfsr_noise[4:3],                                        
+        -- wave_out[5],                                            
+        -- lfsr_noise[1],                                          
+        -- wave_out[4],                                            
+        -- (lfsr_noise[17] ^ (lfsr_noise[22] | reset | `test_ctrl))
+      
+        if(accu_bit_prev /= accumulator(19)) then
+          
+          -- Simulate the pull-down effect selecting noise and another channel has on the LFSR
+          if(Control(7) = '1') then
+            LFSR(22 downto 1)   <= LFSR(21) & signal_mux(11) & LFSR(19) & signal_mux(10) & LFSR(17 downto 15)
+                                          & signal_mux(9) & LFSR(13 downto 12) & signal_mux(8) & LFSR(10) & signal_mux(7)
+                                          & LFSR(8 downto 6) & signal_mux(6) & LFSR(4 downto 3) & signal_mux(5)
+                                          & LFSR(1) & signal_mux(4);
           else
-            LFSR	 						<= LFSR;
+            LFSR(22 downto 1)	<= LFSR(21 downto 0);
           end if;
+          LFSR(0) <= LFSR(17) xor (LFSR(22) or reset or test);   -- see Xilinx XAPP052 for maximal LFSR taps
         end if;
         
+        -- the test signal can stop the oscillator,
+        -- stopping the oscillator is very useful when you want to play "samples"
+        accu_bit_prev	<= accumulator(19);
+          
         -- Waveform Output selector (MUX):
         -- "Since all of the waveforms were just digital bits, the Waveform Selector
         -- consisted of multiplexers that selected which waveform bits would be sent
@@ -269,19 +308,35 @@ begin
         -- which produced unpredictable results, so I didn't encourage this, especially
         -- since it could lock up the pseudo-random sequence generator by filling it
         -- with zeroes."
-        signal_mux(11) <= (triangle(11) and Control(4)) or (sawtooth(11) and Control(5)) or (pulse and Control(6)) or (noise(11) and Control(7));
-        signal_mux(10) <= (triangle(10) and Control(4)) or (sawtooth(10) and Control(5)) or (pulse and Control(6)) or (noise(10) and Control(7));
-        signal_mux(9)  <= (triangle(9)  and Control(4)) or (sawtooth(9)  and Control(5)) or (pulse and Control(6)) or (noise(9)  and Control(7));
-        signal_mux(8)  <= (triangle(8)  and Control(4)) or (sawtooth(8)  and Control(5)) or (pulse and Control(6)) or (noise(8)  and Control(7));
-        signal_mux(7)  <= (triangle(7)  and Control(4)) or (sawtooth(7)  and Control(5)) or (pulse and Control(6)) or (noise(7)  and Control(7));
-        signal_mux(6)  <= (triangle(6)  and Control(4)) or (sawtooth(6)  and Control(5)) or (pulse and Control(6)) or (noise(6)  and Control(7));
-        signal_mux(5)  <= (triangle(5)  and Control(4)) or (sawtooth(5)  and Control(5)) or (pulse and Control(6)) or (noise(5)  and Control(7));
-        signal_mux(4)  <= (triangle(4)  and Control(4)) or (sawtooth(4)  and Control(5)) or (pulse and Control(6)) or (noise(4)  and Control(7));
-        signal_mux(3)  <= (triangle(3)  and Control(4)) or (sawtooth(3)  and Control(5)) or (pulse and Control(6)) or (noise(3)  and Control(7));
-        signal_mux(2)  <= (triangle(2)  and Control(4)) or (sawtooth(2)  and Control(5)) or (pulse and Control(6)) or (noise(2)  and Control(7));
-        signal_mux(1)  <= (triangle(1)  and Control(4)) or (sawtooth(1)  and Control(5)) or (pulse and Control(6)) or (noise(1)  and Control(7));
-        signal_mux(0)  <= (triangle(0)  and Control(4)) or (sawtooth(0)  and Control(5)) or (pulse and Control(6)) or (noise(0)  and Control(7));
-        
+
+
+        if Control(7 downto 4) /= "0000" then
+          -- Initialize to 1s for ANDing
+          signal_mux_var := (others => '1');
+
+          -- Triangle
+          if Control(4) = '1' then
+            signal_mux_var := signal_mux_var and triangle;
+          end if;
+
+          -- Sawtooth
+          if Control(5) = '1' then
+            signal_mux_var := signal_mux_var and sawtooth;
+          end if;
+
+          -- Pulse
+          if Control(6) = '1' and pulse = '0' then
+            signal_mux_var := (others => '0');
+          end if;
+
+          -- Noise
+          if Control(7) = '1' then
+            signal_mux_var := signal_mux_var and noise;
+          end if;
+
+          signal_mux <= signal_mux_var;
+          
+        end if;
         -----------------------------------------------------------------------------------------------------------------
         -- Waveform envelope (volume) control
         -----------------------------------------------------------------------------------------------------------------
