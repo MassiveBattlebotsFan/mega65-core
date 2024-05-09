@@ -440,9 +440,9 @@ begin
   input_valid <= '1' when tick_q1 /=tick_q2 else '0';
   
   
-  voice1_signed <= signed("0" & voice_1) - 2048 when mode='0' else signed("0" & voice_1_8580) - 2048;
-  voice2_signed <= signed("0" & voice_2) - 2048 when mode='0' else signed("0" & voice_2_8580) - 2048;
-  voice3_signed <= signed("0" & voice_3) - 2048 when mode='0' else signed("0" & voice_3_8580) - 2048;
+  voice1_signed <= signed("0" & voice_1) when mode='0' else signed("0" & voice_1_8580);
+  voice2_signed <= signed("0" & voice_2) when mode='0' else signed("0" & voice_2_8580);
+  voice3_signed <= signed("0" & voice_3) when mode='0' else signed("0" & voice_3_8580);
   
   misc_osc3_random <= misc_osc3_random_6581 when mode='0' else misc_osc3_random_8580;
   misc_env3 <= misc_env3_6581 when mode='0' else misc_env3_8580;
