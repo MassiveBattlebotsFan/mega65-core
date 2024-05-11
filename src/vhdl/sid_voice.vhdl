@@ -62,7 +62,6 @@ architecture Behavioral of sid_voice is
   
 -------------------------------------------------------------------------------
   
-  signal	accumulator					: unsigned(23 downto 0) := (others => '0');
   signal	accumulator_latch				: unsigned(23 downto 0) := (others => '0');
   signal	accu_bit_prev				: std_logic := '0';
   signal	PA_MSB_in_prev				: std_logic := '0';
@@ -128,7 +127,7 @@ architecture Behavioral of sid_voice is
 begin
   
   -- output the Phase accumulator's MSB for sync and ringmod purposes
-  PA_MSB_out					<= accumulator(23);
+  PA_MSB_out					<= accumulator_latch(23);
   -- output the upper 8-bits of the waveform.
   -- Useful for random numbers (noise must be selected)
   Osc							<= signal_mux(11 downto 4);
@@ -156,6 +155,7 @@ begin
     variable signal_mux_var : unsigned(11 downto 0) := (others => '0');  -- VHDL is weird so we need a buffer
     variable reset_cycle_ctr : unsigned(3 downto 0) := (others => '0');  -- Zero regs after 10 cycles
     variable accumulator_temp : unsigned(23 downto 0) := (others => '0');
+    variable accumulator : unsigned(23 downto 0) := (others => '0');
   begin
     
     if rising_edge(cpuclock) then
@@ -178,7 +178,8 @@ begin
             reset_cycle_ctr := reset_cycle_ctr + 1;
           end if;
           
-          accumulator <= (others => '0');
+          accumulator_latch <= (others => '0');
+          accumulator := (others => '0');
           
           if reset_cycle_ctr > x"0A" then
             LFSR <= (others => '0');
@@ -192,11 +193,7 @@ begin
           --                       & accumulator(11 downto 0);
           -- end if;
 
-          if Control(5) = '1' and Control(6) = '1' then
-            accumulator <= (pulse & accumulator(22 downto 0)) + ("0" & frequency);
-          else
-            accumulator <= accumulator + ("0" & frequency);
-          end if;
+          accumulator := accumulator_latch + ("0" & frequency);
           reset_cycle_ctr := (others => '0');
         end if;
         
@@ -327,7 +324,9 @@ begin
           end if;
 
           signal_mux <= signal_mux_var;
-          
+          if Control(5) = '1' then
+            accumulator(23) := signal_mux_var(11);
+          end if;
         end if;
         -----------------------------------------------------------------------------------------------------------------
         -- Waveform envelope (volume) control
@@ -376,6 +375,8 @@ begin
         --voice, signal_mux(12bit) * env_counter(8bit), so the result will
         --require 20 bits !!
         signal_vol	<= signal_mux_clamped * env_counter;
+
+        accumulator_latch <= accumulator;
         
         -----------------------------------------------------------------------------------------------------------------
         -- Envelope Generator
