@@ -192,8 +192,11 @@ begin
           --                       & accumulator(11 downto 0);
           -- end if;
 
-          accumulator_latch <= accumulator;
-
+          if Control(5) = '1' and Control(6) = '1' then
+            accumulator <= (pulse & accumulator(22 downto 0)) + ("0" & frequency);
+          else
+            accumulator <= accumulator + ("0" & frequency);
+          end if;
           reset_cycle_ctr := (others => '0');
         end if;
         
@@ -212,6 +215,7 @@ begin
         -- accumulator to a 12-bit digital comparator. The output of the comparator was
         -- either a one or a zero. This single output was then sent to all 12 bits of
         -- the Waveform D/A. "
+        
         if ((accumulator(23 downto 12)) >= pulsewidth) or (test = '1') then
           pulse <= '1';
         else
@@ -629,12 +633,6 @@ begin
           when "1111" =>	divider_dec_rel <= 14706;	--release rate: (24000mS / 1uS per clockcycle) / 1632
           when others =>	divider_dec_rel <= 0;			--
         end case;
-      else
-          if (Control(5) = '1') then
-            accumulator <= (signal_mux(11) & accumulator_latch(22 downto 0)) + ("0" & frequency);
-          else
-            accumulator <= accumulator_latch + ("0" & frequency);
-          end if;
       end if;
       
       -- Reset and various other functions happen at full clock speed, so

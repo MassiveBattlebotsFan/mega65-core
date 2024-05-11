@@ -1,0 +1,27 @@
+v 4
+file . "sid_tables.vhdl" "dc96731d81bb3c6c5190c0b4ceb3daf9e6f304e0" "20240508193324.990":
+  entity sid_tables at 1( 0) + 0 on 4;
+  architecture sequential of sid_tables at 19( 553) + 0 on 4;
+file . "sid_filters.vhdl" "7c21c92d5ed5dbf7d1fbcbae85f0464c692431f0" "20240508193324.988":
+  entity sid_filters at 29( 1409) + 0 on 4;
+  architecture beh of sid_filters at 61( 2245) + 0 on 4;
+file . "sid_components.vhdl" "4827bee6c0713739ed9c6c8c159b1033b9feea52" "20240508193324.988":
+  entity pwm_sddac at 12( 530) + 0 on 4;
+  architecture rtl of pwm_sddac at 44( 1349) + 0 on 4;
+  entity pwm_sdadc at 62( 1885) + 0 on 4;
+  architecture rtl of pwm_sdadc at 76( 2322) + 0 on 4;
+file . "sid_coeffs.vhdl" "5627e4f4f1362b1ad5ba50461c5c8c65c2fcb3ac" "20240508193324.988":
+  entity sid_coeffs at 1( 0) + 0 on 4;
+  architecture beh of sid_coeffs at 13( 210) + 0 on 4;
+file . "sid_coeffs_mux.vhdl" "66ae0a5dace8679ca0cf45cd2c56882e8e2bd4f4" "20240508193324.987":
+  entity sid_coeffs_mux at 1( 0) + 0 on 4;
+  architecture mayan of sid_coeffs_mux at 28( 978) + 0 on 4;
+file . "sid_6581.vhdl" "61bef77985b2eb8ab54309056a44f26761cd64f9" "20240508193324.986":
+  entity sid6581 at 78( 3816) + 0 on 4;
+  architecture behavioral of sid6581 at 107( 5005) + 0 on 4;
+file . "sid_voice_tb.vhdl" "e362571d57aa9eafa07776ddb66bdc03fc9bb7a2" "20240510231921.393":
+  entity sid_voice_tb at 1( 0) + 0 on 677;
+  architecture testbench of sid_voice_tb at 9( 122) + 0 on 678;
+file . "sid_voice.vhdl" "da564c2e8732b662d7eecb03a46d117ce8292c39" "20240509183540.919":
+  entity sid_voice at 12( 529) + 0 on 641;
+  architecture behavioral of sid_voice at 40( 1892) + 0 on 642;

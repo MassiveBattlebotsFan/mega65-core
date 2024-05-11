@@ -109,7 +109,8 @@ architecture Behavioral of sid6581 is
   signal reset_drive : std_logic;
   
   signal clk_1MHz_en : std_logic := '1';
-  
+
+  signal databus : unsigned(7 downto 0) := (others => '0');
   
   signal Voice_1_Freq_lo	: unsigned(7 downto 0)	:= (others => '0');
   signal Voice_1_Freq_hi	: unsigned(7 downto 0)	:= (others => '0');
@@ -382,8 +383,8 @@ begin
         when "11011" => do <= Misc_Osc3_Random;
         when "11100" => do <= Misc_Env3;
         --------------------------------------
-        when others => do <= x"FF";
-      end case;		
+        when others => do <= databus;
+      end case;
     else
       do <= (others => 'Z');
     end if;
@@ -542,7 +543,8 @@ begin
         
         if (cs='1') then
           if (we='1') then	-- Write to SID-register
-                                            ------------------------
+            databus <= di;        -- cache data value for invalid readback
+                                        ------------------------
             case addr is
                 -- @IO:GS $D400 SID:VOICE1!FRQLO@VOICEX!FRQLO Voice X Frequency Low
                 -- @IO:GS $D401 SID:VOICE1!FRQHI@VOICEX!FRQHI Voice X Frequency High
@@ -639,6 +641,14 @@ begin
               when "11000" =>	Filter_Mode_Vol	<= di;
                                         --------------------------------------
               when others	=>	null;
+            end case;
+          else
+            case addr is
+              when "11001" => databus <= pot_x;
+              when "11010" => databus <= pot_Y;
+              when "11011" => databus <= Misc_Osc3_Random;
+              when "11100" => databus <= Misc_Env3;
+              when others => null;
             end case;
           end if;
         end if;
