@@ -546,13 +546,15 @@ architecture Behavioural of gs4510 is
   constant palette_48mhz : unsigned(7 downto 0) := x"03";
   constant iowrite_48mhz : unsigned(7 downto 0) := x"00";
   constant shadow_48mhz :  unsigned(7 downto 0) := x"00";
-
+  constant sidtable_40mhz : unsigned(7 downto 0) := x"03";
+  
   signal shadow_wait_states : unsigned(7 downto 0) := shadow_48mhz;
   signal io_read_wait_states : unsigned(7 downto 0) := ioread_48mhz;
   signal colourram_read_wait_states : unsigned(7 downto 0) := colourread_48mhz;
   signal palette_read_wait_states : unsigned(7 downto 0) := palette_48mhz;
   signal io_write_wait_states : unsigned(7 downto 0) := iowrite_48mhz;
-
+  signal sidtable_wait_states : unsigned(7 downto 0) := sidtable_40mhz;
+  
   -- Interface to slow device address space
   signal slow_access_request_toggle_drive : std_logic := '0';
   signal slow_access_write_drive : std_logic := '0';
@@ -2272,6 +2274,15 @@ begin
           -- 1 wait state when reading
           wait_states <= colourram_read_wait_states;
           if colourram_read_wait_states /= x"00" then
+            wait_states_non_zero <= '1';
+          else
+            wait_states_non_zero <= '0';
+          end if;
+        end if;
+
+        if long_address(19 downto 12) = x"60" then
+          wait_states <= sidtable_wait_states;
+          if sidtable_wait_states /= x"00" then
             wait_states_non_zero <= '1';
           else
             wait_states_non_zero <= '0';

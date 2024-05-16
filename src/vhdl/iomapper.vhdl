@@ -494,15 +494,16 @@ architecture behavioral of iomapper is
   signal cia1portb_out : std_logic_vector(7 downto 0);
   signal cia1portb_in : std_logic_vector(7 downto 0);
 
-  signal leftsid_cs : std_logic;
+  signal leftsid_cs : std_logic := '0';
   signal leftsid_audio : signed(17 downto 0);
-  signal rightsid_cs : std_logic;
+  signal rightsid_cs : std_logic := '0';
   signal rightsid_audio : signed(17 downto 0);
-  signal frontsid_cs : std_logic;
+  signal frontsid_cs : std_logic := '0';
   signal frontsid_audio : signed(17 downto 0) := to_signed(0,18);
-  signal backsid_cs : std_logic;
+  signal backsid_cs : std_logic := '0';
   signal backsid_audio : signed(17 downto 0);
-
+  signal filter_cs : std_logic := '0';
+  
   signal c65uart_cs : std_logic := '0';
   signal sdcardio_cs : std_logic := '0';
   signal sdcardio_cs_fast : std_logic := '0';
@@ -1087,101 +1088,124 @@ begin
     );
   end block;
 
- sidcblock: block
-  begin
-    sidc: entity work.sid_coeffs_mux port map (
-      clk => cpuclock,
-      addr0 => filter_table_addr0,
-      val0 => filter_table_val0,
-      addr1 => filter_table_addr1,
-      val1 => filter_table_val1,
-      addr2 => filter_table_addr2,
-      val2 => filter_table_val2,
-      addr3 => filter_table_addr3,
-      val3 => filter_table_val3
-      );
-    end block;
+ -- sidcblock: block
+ --  begin
+ --    sidc: entity work.sid_coeffs_mux port map (
+ --      clk => cpuclock,
+ --      addr0 => filter_table_addr0,
+ --      val0 => filter_table_val0,
+ --      addr1 => filter_table_addr1,
+ --      val1 => filter_table_val1,
+ --      addr2 => filter_table_addr2,
+ --      val2 => filter_table_val2,
+ --      addr3 => filter_table_addr3,
+ --      val3 => filter_table_val3
+ --      );
+ --    end block;
 
-  block6: block
-  begin
-    leftsid: entity work.sid6581 port map (
-    clk_1MHz => phi0_1mhz,
-    cpuclock => cpuclock,
-    reset => reset_high,
-    cs => leftsid_cs,
-    mode => sid_mode(0),
-    we => w,
-    addr => unsigned(address(4 downto 0)),
-    di => unsigned(data_i),
-    std_logic_vector(do) => data_o,
-    pot_x => potl_x,
-    pot_y => potl_y,
-    signed_audio => leftsid_audio,
-    filter_table_addr => filter_table_addr0,
-    filter_table_val => filter_table_val0
-    );
-  end block;
+ --  block6: block
+ --  begin
+ --    leftsid: entity work.sid6581 port map (
+ --    clk_1MHz => phi0_1mhz,
+ --    cpuclock => cpuclock,
+ --    reset => reset_high,
+ --    cs => leftsid_cs,
+ --    mode => sid_mode(0),
+ --    we => w,
+ --    addr => unsigned(address(4 downto 0)),
+ --    di => unsigned(data_i),
+ --    std_logic_vector(do) => data_o,
+ --    pot_x => potl_x,
+ --    pot_y => potl_y,
+ --    signed_audio => leftsid_audio,
+ --    filter_table_addr => filter_table_addr0,
+ --    filter_table_val => filter_table_val0
+ --    );
+ --  end block;
 
-  block7: block
-  begin
-  rightsid: entity work.sid6581 port map (
-    clk_1MHz => phi0_1mhz,
-    cpuclock => cpuclock,
-    reset => reset_high,
-    cs => rightsid_cs,
-    mode => sid_mode(1),
-    we => w,
-    addr => unsigned(address(4 downto 0)),
-    di => unsigned(data_i),
-    std_logic_vector(do) => data_o,
-    pot_x => potr_x,
-    pot_y => potr_y,
-    signed_audio => rightsid_audio,
-    filter_table_addr => filter_table_addr1,
-    filter_table_val => filter_table_val1
-    );
-  end block;
+ --  block7: block
+ --  begin
+ --  rightsid: entity work.sid6581 port map (
+ --    clk_1MHz => phi0_1mhz,
+ --    cpuclock => cpuclock,
+ --    reset => reset_high,
+ --    cs => rightsid_cs,
+ --    mode => sid_mode(1),
+ --    we => w,
+ --    addr => unsigned(address(4 downto 0)),
+ --    di => unsigned(data_i),
+ --    std_logic_vector(do) => data_o,
+ --    pot_x => potr_x,
+ --    pot_y => potr_y,
+ --    signed_audio => rightsid_audio,
+ --    filter_table_addr => filter_table_addr1,
+ --    filter_table_val => filter_table_val1
+ --    );
+ --  end block;
 
- block6b: block
-  begin
-    frontsid: entity work.sid6581 port map (
-    clk_1MHz => phi0_1mhz,
-    cpuclock => cpuclock,
-    reset => reset_high,
-    cs => frontsid_cs,
-    mode => sid_mode(2),
-    we => w,
-    addr => unsigned(address(4 downto 0)),
-    di => unsigned(data_i),
-    std_logic_vector(do) => data_o,
-    pot_x => potl_x,
-    pot_y => potl_y,
-    signed_audio => frontsid_audio,
-    filter_table_addr => filter_table_addr2,
-    filter_table_val => filter_table_val2
-    );
-  end block;
+ -- block6b: block
+ --  begin
+ --    frontsid: entity work.sid6581 port map (
+ --    clk_1MHz => phi0_1mhz,
+ --    cpuclock => cpuclock,
+ --    reset => reset_high,
+ --    cs => frontsid_cs,
+ --    mode => sid_mode(2),
+ --    we => w,
+ --    addr => unsigned(address(4 downto 0)),
+ --    di => unsigned(data_i),
+ --    std_logic_vector(do) => data_o,
+ --    pot_x => potl_x,
+ --    pot_y => potl_y,
+ --    signed_audio => frontsid_audio,
+ --    filter_table_addr => filter_table_addr2,
+ --    filter_table_val => filter_table_val2
+ --    );
+ --  end block;
 
-  block7b: block
-  begin
-  backsid: entity work.sid6581 port map (
-    clk_1MHz => phi0_1mhz,
-    cpuclock => cpuclock,
-    reset => reset_high,
-    cs => backsid_cs,
-    mode => sid_mode(3),
-    we => w,
-    addr => unsigned(address(4 downto 0)),
-    di => unsigned(data_i),
-    std_logic_vector(do) => data_o,
-    pot_x => potr_x,
-    pot_y => potr_y,
-    signed_audio => backsid_audio,
-    filter_table_addr => filter_table_addr3,
-    filter_table_val => filter_table_val3
-    );
-  end block;
-
+ --  block7b: block
+ --  begin
+ --  backsid: entity work.sid6581 port map (
+ --    clk_1MHz => phi0_1mhz,
+ --    cpuclock => cpuclock,
+ --    reset => reset_high,
+ --    cs => backsid_cs,
+ --    mode => sid_mode(3),
+ --    we => w,
+ --    addr => unsigned(address(4 downto 0)),
+ --    di => unsigned(data_i),
+ --    std_logic_vector(do) => data_o,
+ --    pot_x => potr_x,
+ --    pot_y => potr_y,
+ --    signed_audio => backsid_audio,
+ --    filter_table_addr => filter_table_addr3,
+ --    filter_table_val => filter_table_val3
+ --    );
+ --  end block;
+  multisid: entity work.multisid(rtl)
+    port map (
+      cpuclock       => cpuclock,
+      phi0_1mhz      => phi0_1mhz,
+      reset_high     => reset_high,
+      w              => w,
+      leftsid_cs     => leftsid_cs,
+      rightsid_cs    => rightsid_cs,
+      frontsid_cs    => frontsid_cs,
+      backsid_cs     => backsid_cs,
+      leftsid_audio  => leftsid_audio,
+      rightsid_audio => rightsid_audio,
+      frontsid_audio => frontsid_audio,
+      backsid_audio  => backsid_audio,
+      data_i         => data_i,
+      data_o         => data_o,
+      filter_cs      => filter_cs,
+      sid_mode       => sid_mode,
+      address        => unsigned(address(11 downto 0)),
+      potl_x         => potl_x,
+      potr_x         => potr_x,
+      potl_y         => potl_y,
+      potr_y         => potr_y);
+  
   vfpga:
     if false generate
       vfpga0:        entity work.vfpga_wrapper_8bit port map (
@@ -2207,6 +2231,13 @@ begin
           backsid_cs <= (((not address(6)) and address(5)) xor address(8)) and rscs_en;
         when others => leftsid_cs <= '0'; rightsid_cs <= '0'; frontsid_cs <= '0'; backsid_cs <= '0';
       end case;
+
+      -- @IO:GS $FF6xxxx - SID filter tables
+      if address(19 downto 12) = x"60" then
+        filter_cs <= '1';
+      else
+        filter_cs <= '0';
+      end if;
 
       -- $D500 - $D5FF is not currently used.  Probably use some for FPU.
 
