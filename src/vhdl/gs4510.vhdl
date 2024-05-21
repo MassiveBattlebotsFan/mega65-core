@@ -2280,7 +2280,7 @@ begin
           end if;
         end if;
 
-        if long_address(19 downto 12) = x"60" then
+        if long_address(19 downto 16) = x"6" then
           wait_states <= sidtable_wait_states;
           if sidtable_wait_states /= x"00" then
             wait_states_non_zero <= '1';

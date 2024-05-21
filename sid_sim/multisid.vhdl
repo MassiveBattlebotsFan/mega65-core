@@ -7,10 +7,11 @@ entity multisid is
   port (
     cpuclock, phi0_1mhz, reset_high, w : in std_logic;
     leftsid_cs, rightsid_cs, frontsid_cs, backsid_cs, filter_cs : in std_logic;
+    supersid_w1_cs, supersid_w2_cs, supersid_w3_cs, supersid_w4_cs : in std_logic;
     leftsid_audio, rightsid_audio, frontsid_audio, backsid_audio : out signed(17 downto 0);
     data_i : in std_logic_vector(7 downto 0);
     data_o : out std_logic_vector(7 downto 0);
-    sid_mode : in unsigned(3 downto 0);
+    sid_mode : in unsigned(4 downto 0);
     address : in unsigned(11 downto 0);
     potl_x, potr_x, potl_y, potr_y : in unsigned(7 downto 0)
     );
@@ -30,7 +31,7 @@ architecture rtl of multisid is
   signal mux_di : unsigned(7 downto 0);
   signal mux_addr : unsigned(11 downto 0);
   signal filt_data_o : std_logic_vector(7 downto 0);
-  signal filt_data_buf : std_logic_vector(7 downto 0);
+  signal data_buf : std_logic_vector(7 downto 0);
 begin  -- architecture rtl
 
   -- msid_ram_test : entity work.multisid_ram(rtl)
@@ -165,11 +166,11 @@ begin  -- architecture rtl
   begin  -- process main
     if rising_edge(cpuclock) then
       if filter_cs = '1' then
-        filt_data_buf <= filt_data_o;
+        data_buf <= filt_data_o;
       else
-        filt_data_buf <= (others => 'Z');
+        data_buf <= (others => 'Z');
       end if;
     end if;
   end process main;
-  data_o <= filt_data_buf;
+  data_o <= data_buf;
 end architecture rtl;

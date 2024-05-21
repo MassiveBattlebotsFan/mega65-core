@@ -416,7 +416,7 @@ end iomapper;
 
 architecture behavioral of iomapper is
 
-  signal sid_mode : unsigned(3 downto 0); -- 1=8580, 0=6581
+  signal sid_mode : unsigned(4 downto 0); -- 1=8580, 0=6581
 
   signal the_button : std_logic;
   signal i2c_joya_fire_int : std_logic := '1';
@@ -503,6 +503,9 @@ architecture behavioral of iomapper is
   signal backsid_cs : std_logic := '0';
   signal backsid_audio : signed(17 downto 0);
   signal filter_cs : std_logic := '0';
+  signal supersid_w1_cs, supersid_w2_cs : std_logic := '0';
+  signal supersid_w3_cs, supersid_w4_cs : std_logic := '0';
+
   
   signal c65uart_cs : std_logic := '0';
   signal sdcardio_cs : std_logic := '0';
@@ -866,7 +869,8 @@ begin
       pixelclock => pixelclk,
       cpuclock => cpuclock,
       c65uart_cs => c65uart_cs,
-      sid_mode => sid_mode,
+      sid_mode => sid_mode(3 downto 0),
+      dc_track_enable => sid_mode(4),
       osk_toggle_key => osk_toggle_key,
       joyswap_key => joyswap_key,
       reset => reset,
@@ -1192,6 +1196,10 @@ begin
       rightsid_cs    => rightsid_cs,
       frontsid_cs    => frontsid_cs,
       backsid_cs     => backsid_cs,
+      supersid_w1_cs => supersid_w1_cs,
+      supersid_w2_cs => supersid_w2_cs,
+      supersid_w3_cs => supersid_w3_cs,
+      supersid_w4_cs => supersid_w4_cs,
       leftsid_audio  => leftsid_audio,
       rightsid_audio => rightsid_audio,
       frontsid_audio => frontsid_audio,
@@ -2232,12 +2240,24 @@ begin
         when others => leftsid_cs <= '0'; rightsid_cs <= '0'; frontsid_cs <= '0'; backsid_cs <= '0';
       end case;
 
-      -- @IO:GS $FF6xxxx - SID filter tables
-      if address(19 downto 12) = x"60" then
-        filter_cs <= '1';
-      else
-        filter_cs <= '0';
-      end if;
+      -- @IO:GS $FF60000-$FF60FFF - SID filter coefficient table
+      -- @IO:GS $FF61000-$FF61FFF - SuperSID wavetable 1 (NYI)
+      -- @IO:GS $FF62000-$FF62FFF - SuperSID wavetable 2 (NYI)
+      -- @IO:GS $FF63000-$FF63FFF - SuperSID wavetable 3 (NYI)
+      -- @IO:GS $FF64000-$FF64FFF - SuperSID wavetable 4 (NYI)
+      filter_cs <= '0';
+      supersid_w1_cs <= '0';
+      supersid_w2_cs <= '0';
+      supersid_w3_cs <= '0';
+      supersid_w4_cs <= '0';
+      case address(19 downto 12) is
+        when x"60" => filter_cs <= '1';
+        when x"61" => supersid_w1_cs <= '1';
+        when x"62" => supersid_w2_cs <= '1';
+        when x"63" => supersid_w3_cs <= '1';
+        when x"64" => supersid_w4_cs <= '1';
+        when others => null;
+      end case;
 
       -- $D500 - $D5FF is not currently used.  Probably use some for FPU.
 
