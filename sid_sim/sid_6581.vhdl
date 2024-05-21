@@ -88,6 +88,7 @@ entity sid6581 is
     reset				: in  std_logic;		-- high active signal (reset when reset = '1')
     cs					: in  std_logic;		-- "chip select", when this signal is '1' this model can be accessed
     we					: in std_logic;		-- when '1' this model can be written to, otherwise access is considered as read
+    loopback                            : in  std_logic;  -- Allow write-only regs to be read
     
     mode : in std_logic; -- 0=6581, 1=8580
     
@@ -372,19 +373,60 @@ begin
     if cs='1' then
       -- Read from SID-register
       -------------------------
-      case addr is
-        -- @IO:GS $D419 SID:PADDLE1 Analog/Digital Converter: Game Paddle 1 (0-255)
-        -- @IO:GS $D41A SID:PADDLE2 Analog/Digital Converter Game Paddle 2 (0-255)
-        -- @IO:GS $D41B SID:OSC3RNG Oscillator 3 Random Number Generator
-        -- @IO:GS $D41C SID:ENV3OUT Envelope Generator 3 Output
-        -------------------------------------- Misc
-        when "11001" => do <= pot_x;
-        when "11010" => do <= pot_Y;
-        when "11011" => do <= Misc_Osc3_Random;
-        when "11100" => do <= Misc_Env3;
-        --------------------------------------
-        when others => do <= databus;
-      end case;
+      if loopback = '1' then
+        case addr is
+                                        -------------------------------------- Voice-1
+          when "00000" => do <=	Voice_1_Freq_lo;
+          when "00001" => do <=	Voice_1_Freq_hi;
+          when "00010" => do <=	Voice_1_Pw_lo;
+          when "00011" => do <=	Voice_1_Pw_hi;
+          when "00100" => do <=	Voice_1_Control;
+          when "00101" => do <=	Voice_1_Att_dec;
+          when "00110" => do <=	Voice_1_Sus_Rel;
+                                        --------------------------------------- Voice-2
+          when "00111" => do <=	Voice_2_Freq_lo;
+          when "01000" => do <=	Voice_2_Freq_hi;
+          when "01001" => do <=	Voice_2_Pw_lo;
+          when "01010" => do <=	Voice_2_Pw_hi;
+          when "01011" => do <=	Voice_2_Control;
+          when "01100" => do <=	Voice_2_Att_dec;
+          when "01101" => do <=	Voice_2_Sus_Rel;
+                                        --------------------------------------- Voice-3
+          when "01110" => do <=	Voice_3_Freq_lo;
+          when "01111" => do <=	Voice_3_Freq_hi;
+          when "10000" => do <=	Voice_3_Pw_lo;
+          when "10001" => do <=	Voice_3_Pw_hi;
+          when "10010" => do <=	Voice_3_Control;
+          when "10011" => do <=	Voice_3_Att_dec;
+          when "10100" => do <=	Voice_3_Sus_Rel;
+                                        --------------------------------------- Filter & volume
+          when "10101" => do <=	Filter_Fc_lo;	
+          when "10110" => do <=	Filter_Fc_hi;	
+          when "10111" => do <=	Filter_Res_Filt;	
+          when "11000" => do <=	Filter_Mode_Vol;
+                                        --------------------------------------
+          when "11001" => do <= pot_x;
+          when "11010" => do <= pot_Y;
+          when "11011" => do <= Misc_Osc3_Random;
+          when "11100" => do <= Misc_Env3;
+          --------------------------------------
+          when others => do <= databus;
+        end case;
+      else  
+        case addr is
+          -- @IO:GS $D419 SID:PADDLE1 Analog/Digital Converter: Game Paddle 1 (0-255)
+          -- @IO:GS $D41A SID:PADDLE2 Analog/Digital Converter Game Paddle 2 (0-255)
+          -- @IO:GS $D41B SID:OSC3RNG Oscillator 3 Random Number Generator
+          -- @IO:GS $D41C SID:ENV3OUT Envelope Generator 3 Output
+          -------------------------------------- Misc
+          when "11001" => do <= pot_x;
+          when "11010" => do <= pot_Y;
+          when "11011" => do <= Misc_Osc3_Random;
+          when "11100" => do <= Misc_Env3;
+          --------------------------------------
+          when others => do <= databus;
+        end case;
+      end if; 
     else
       do <= (others => 'Z');
     end if;

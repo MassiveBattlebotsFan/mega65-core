@@ -8,6 +8,7 @@ entity multisid is
     cpuclock, phi0_1mhz, reset_high, w : in std_logic;
     leftsid_cs, rightsid_cs, frontsid_cs, backsid_cs, filter_cs : in std_logic;
     supersid_w1_cs, supersid_w2_cs, supersid_w3_cs, supersid_w4_cs : in std_logic;
+    reg_loopback_cs : in std_logic;
     leftsid_audio, rightsid_audio, frontsid_audio, backsid_audio : out signed(17 downto 0);
     data_i : in std_logic_vector(7 downto 0);
     data_o : out std_logic_vector(7 downto 0);
@@ -89,6 +90,7 @@ begin  -- architecture rtl
       cpuclock => cpuclock,
       reset => reset_high,
       cs => leftsid_cs,
+      loopback => reg_loopback_cs,
       mode => sid_mode(0),
       we => w,
       addr => unsigned(address(4 downto 0)),
@@ -109,6 +111,7 @@ begin  -- architecture rtl
       cpuclock => cpuclock,
       reset => reset_high,
       cs => rightsid_cs,
+      loopback => reg_loopback_cs,
       mode => sid_mode(1),
       we => w,
       addr => unsigned(address(4 downto 0)),
@@ -129,6 +132,7 @@ begin  -- architecture rtl
       cpuclock => cpuclock,
       reset => reset_high,
       cs => frontsid_cs,
+      loopback => reg_loopback_cs,
       mode => sid_mode(2),
       we => w,
       addr => unsigned(address(4 downto 0)),
@@ -149,6 +153,7 @@ begin  -- architecture rtl
       cpuclock => cpuclock,
       reset => reset_high,
       cs => backsid_cs,
+      loopback => reg_loopback_cs,
       mode => sid_mode(3),
       we => w,
       addr => unsigned(address(4 downto 0)),

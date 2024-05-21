@@ -502,10 +502,13 @@ architecture behavioral of iomapper is
   signal frontsid_audio : signed(17 downto 0) := to_signed(0,18);
   signal backsid_cs : std_logic := '0';
   signal backsid_audio : signed(17 downto 0);
+  -- SID filter coefficient chip select
   signal filter_cs : std_logic := '0';
+  -- SuperSID wavetable chip selects, NYI
   signal supersid_w1_cs, supersid_w2_cs : std_logic := '0';
   signal supersid_w3_cs, supersid_w4_cs : std_logic := '0';
-
+  -- SID register loopback select, allows for reading normally write-only regs
+  signal reg_loopback_cs : std_logic := '0';
   
   signal c65uart_cs : std_logic := '0';
   signal sdcardio_cs : std_logic := '0';
@@ -1188,31 +1191,32 @@ begin
  --  end block;
   multisid: entity work.multisid(rtl)
     port map (
-      cpuclock       => cpuclock,
-      phi0_1mhz      => phi0_1mhz,
-      reset_high     => reset_high,
-      w              => w,
-      leftsid_cs     => leftsid_cs,
-      rightsid_cs    => rightsid_cs,
-      frontsid_cs    => frontsid_cs,
-      backsid_cs     => backsid_cs,
-      supersid_w1_cs => supersid_w1_cs,
-      supersid_w2_cs => supersid_w2_cs,
-      supersid_w3_cs => supersid_w3_cs,
-      supersid_w4_cs => supersid_w4_cs,
-      leftsid_audio  => leftsid_audio,
-      rightsid_audio => rightsid_audio,
-      frontsid_audio => frontsid_audio,
-      backsid_audio  => backsid_audio,
-      data_i         => data_i,
-      data_o         => data_o,
-      filter_cs      => filter_cs,
-      sid_mode       => sid_mode,
-      address        => unsigned(address(11 downto 0)),
-      potl_x         => potl_x,
-      potr_x         => potr_x,
-      potl_y         => potl_y,
-      potr_y         => potr_y);
+      cpuclock        => cpuclock,
+      phi0_1mhz       => phi0_1mhz,
+      reset_high      => reset_high,
+      w               => w,
+      leftsid_cs      => leftsid_cs,
+      rightsid_cs     => rightsid_cs,
+      frontsid_cs     => frontsid_cs,
+      backsid_cs      => backsid_cs,
+      supersid_w1_cs  => supersid_w1_cs,
+      supersid_w2_cs  => supersid_w2_cs,
+      supersid_w3_cs  => supersid_w3_cs,
+      supersid_w4_cs  => supersid_w4_cs,
+      reg_loopback_cs => reg_loopback_cs,
+      leftsid_audio   => leftsid_audio,
+      rightsid_audio  => rightsid_audio,
+      frontsid_audio  => frontsid_audio,
+      backsid_audio   => backsid_audio,
+      data_i          => data_i,
+      data_o          => data_o,
+      filter_cs       => filter_cs,
+      sid_mode        => sid_mode,
+      address         => unsigned(address(11 downto 0)),
+      potl_x          => potl_x,
+      potr_x          => potr_x,
+      potl_y          => potl_y,
+      potr_y          => potr_y);
   
   vfpga:
     if false generate
@@ -2232,7 +2236,7 @@ begin
       -- Presumably repeated through to $D5FF.  But we will repeat to $D4FF only
       -- so that we can use $D500-$D5FF for other stuff.
       case address(19 downto 8) is
-        when x"D04" | x"D14" | x"D24" | x"D34" | x"D05" =>
+        when x"D04" | x"D14" | x"D24" | x"D34" | x"D05" | x"650" =>
           leftsid_cs <= ((address(6) and not address(5)) xor address(8)) and lscs_en;
           rightsid_cs <= (((not address(6)) and not address(5)) xor address(8)) and rscs_en;
           frontsid_cs <= ((address(6) and address(5)) xor address(8)) and lscs_en;
@@ -2245,17 +2249,20 @@ begin
       -- @IO:GS $FF62000-$FF62FFF - SuperSID wavetable 2 (NYI)
       -- @IO:GS $FF63000-$FF63FFF - SuperSID wavetable 3 (NYI)
       -- @IO:GS $FF64000-$FF64FFF - SuperSID wavetable 4 (NYI)
+      -- @IO:GS $FF65xxx - SID register loopback
       filter_cs <= '0';
       supersid_w1_cs <= '0';
       supersid_w2_cs <= '0';
       supersid_w3_cs <= '0';
       supersid_w4_cs <= '0';
+      reg_loopback_cs <= '0';
       case address(19 downto 12) is
         when x"60" => filter_cs <= '1';
         when x"61" => supersid_w1_cs <= '1';
         when x"62" => supersid_w2_cs <= '1';
         when x"63" => supersid_w3_cs <= '1';
         when x"64" => supersid_w4_cs <= '1';
+        when x"65" => reg_loopback_cs <= '1';
         when others => null;
       end case;
 

@@ -1509,7 +1509,12 @@ GS $DD1F.7 CIA2:ALRM!AMPM TOD Alarm AM/PM flag
 GS $DE ETHCOMMAND:RXONLYONE Receive exactly one ethernet frame only, and keep all signals states (for debugging ethernet sub-system)
 GS $F1 ETHCOMMAND:FRAME1K Select ~1KiB frames for video/cpu debug stream frames (for receivers that do not support MTUs of greater than 2KiB)
 GS $F2 ETHCOMMAND:FRAME2K Select ~2KiB frames for video/cpu debug stream frames, for optimal performance.
-GS $FF6xxxx - SID filter tables
+GS $FF60000-$FF60FFF - SID filter coefficient table
+GS $FF61000-$FF61FFF - SuperSID wavetable 1 (NYI)
+GS $FF62000-$FF62FFF - SuperSID wavetable 2 (NYI)
+GS $FF63000-$FF63FFF - SuperSID wavetable 3 (NYI)
+GS $FF64000-$FF64FFF - SuperSID wavetable 4 (NYI)
+GS $FF65xxx - SID register loopback
 GS $FF7E000-$FF7EFFF SUMMARY:CHARROM Simuated character ROM area (actually read/write)
 GS $FF7E000-$FF7EFFF SUMMARY:CHARWRITE VIC-IV CHARROM area
 GS $FF7Exxx VIC-IV CHARROM write area
