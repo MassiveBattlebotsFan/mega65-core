@@ -2118,7 +2118,13 @@ begin
 
       report "MEMORY long_address = $" & to_hstring(long_address);
       -- @IO:C64 $0000000 CPU:PORTDDR 6510/45GS10 CPU port DDR
+      -- @IO:GS  $0000000 Write 65 to force fullspeed, 64 for normal
       -- @IO:C64 $0000001 CPU:PORT 6510/45GS10 CPU port data
+      -- @IO:C64 $0000001.2-0 Processor port memory mapper
+      -- @IO:C64 $0000001.3 Datasette output signal level (NYI?)
+      -- @IO:C64 $0000001.4 Datasette button status, 0 = button pressed, 1 = no button pressed (NYI?)
+      -- @IO:C64 $0000001.5 Datasette motor control, 0 = on, 1 = off (NYI?)
+      -- @IO:C64 $0000001.7-6 Unused
       if (long_address(27 downto 6)&"00" = x"FFD364" or long_address(27 downto 6)&"00" = x"FFD264") and hypervisor_mode='1' then
         report "Preparing for reading hypervisor register";
         read_source <= HypervisorRegister;

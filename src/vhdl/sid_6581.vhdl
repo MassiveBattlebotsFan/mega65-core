@@ -82,23 +82,28 @@ use IEEE.numeric_std.all;
 -------------------------------------------------------------------------------
 
 entity sid6581 is
+  generic (
+    RESET_PAN_LEFT  : unsigned(7 downto 0) := x"80";
+    RESET_PAN_RIGHT : unsigned(7 downto 0) := x"80");
   port (
-    clk_1MHz			: in  std_logic;		-- main SID clock signal
+    clk_1MHz			        : in  std_logic;		-- main SID clock signal
     cpuclock				: in  std_logic;		-- main clock signal
     reset				: in  std_logic;		-- high active signal (reset when reset = '1')
     cs					: in  std_logic;		-- "chip select", when this signal is '1' this model can be accessed
     we					: in std_logic;		-- when '1' this model can be written to, otherwise access is considered as read
     loopback                            : in  std_logic;  -- Allow write-only regs to be read
     
-    mode : in std_logic; -- 0=6581, 1=8580
+    mode                                : in std_logic;  -- 0=6581, 1=8580
+    supersid                            : in std_logic;  -- 1=enable panning
     
     addr				: in  unsigned(4 downto 0);	-- address lines
     di					: in  unsigned(7 downto 0);	-- data in (to chip)
     do					: out unsigned(7 downto 0);	-- data out	(from chip)
     pot_x				: in  unsigned(7 downto 0);	-- paddle input-X
     pot_y				: in  unsigned(7 downto 0);	-- paddle input-Y
-    audio_data		: out unsigned(17 downto 0) := to_unsigned(0,18);
-    signed_audio		: out signed(17 downto 0) := to_signed(0,18);
+    audio_data		                : out unsigned(17 downto 0) := to_unsigned(0,18);
+    signed_audio		        : out signed(17 downto 0) := to_signed(0,18);
+    pan_left, pan_right                 : out unsigned(7 downto 0);
     
     filter_table_addr : out integer range 0 to 2047 := 0;
     filter_table_val : in unsigned(15 downto 0)
@@ -148,6 +153,8 @@ architecture Behavioral of sid6581 is
   signal Misc_Env3			: unsigned(7 downto 0)	:= (others => '0');
   signal Misc_Env3_6581			: unsigned(7 downto 0)	:= (others => '0');
   signal Misc_Env3_8580			: unsigned(7 downto 0);
+
+  signal reg_pan_left, reg_pan_right : unsigned(7 downto 0) := (others => '0');  -- Control SID panning
   
   signal do_buf				: unsigned(7 downto 0)	:= (others => '0');
   
@@ -409,7 +416,9 @@ begin
           when "11010" => do <= pot_Y;
           when "11011" => do <= Misc_Osc3_Random;
           when "11100" => do <= Misc_Env3;
-          --------------------------------------
+                                        --------------------------------------
+          when "11101" => if supersid = '1' then do <= reg_pan_left; else do <= databus; end if;
+          when "11110" => if supersid = '1' then do <= reg_pan_right; else do <= databus; end if;
           when others => do <= databus;
         end case;
       else  
@@ -424,6 +433,8 @@ begin
           when "11011" => do <= Misc_Osc3_Random;
           when "11100" => do <= Misc_Env3;
           --------------------------------------
+          when "11101" => if supersid = '1' then do <= reg_pan_left; else do <= databus; end if;
+          when "11110" => if supersid = '1' then do <= reg_pan_right; else do <= databus; end if;
           when others => do <= databus;
         end case;
       end if; 
@@ -555,6 +566,9 @@ begin
         Filter_Fc_hi		<= (others => '0');
         Filter_Res_Filt	<= (others => '0');
         Filter_Mode_Vol	<= (others => '0');
+
+        reg_pan_left <= RESET_PAN_LEFT;
+        reg_pan_right <= RESET_PAN_RIGHT;
       else
         Voice_1_Freq_lo	<= Voice_1_Freq_lo;
         Voice_1_Freq_hi	<= Voice_1_Freq_hi;
@@ -684,12 +698,21 @@ begin
                                         --------------------------------------
               when others	=>	null;
             end case;
+            if supersid = '1' then
+              case addr is
+                when "11101" => reg_pan_left <= di;
+                when "11110" => reg_pan_right <= di;
+                when others => null;
+              end case;
+            end if;
           else
             case addr is
               when "11001" => databus <= pot_x;
               when "11010" => databus <= pot_Y;
               when "11011" => databus <= Misc_Osc3_Random;
               when "11100" => databus <= Misc_Env3;
+              when "11101" => if supersid = '1' then databus <= reg_pan_left; end if;
+              when "11110" => if supersid = '1' then databus <= reg_pan_right; end if;
               when others => null;
             end case;
           end if;
@@ -697,5 +720,8 @@ begin
       end if;
     end if;
   end process;
+
+  pan_left <= reg_pan_left;
+  pan_right <= reg_pan_right;
   
 end Behavioral;

@@ -502,6 +502,8 @@ architecture behavioral of iomapper is
   signal frontsid_audio : signed(17 downto 0) := to_signed(0,18);
   signal backsid_cs : std_logic := '0';
   signal backsid_audio : signed(17 downto 0);
+  signal leftsid_combined, rightsid_combined : signed(17 downto 0) := (others => '0');
+  
   -- SID filter coefficient chip select
   signal filter_cs : std_logic := '0';
   -- SuperSID wavetable chip selects, NYI
@@ -1204,10 +1206,12 @@ begin
       supersid_w3_cs  => supersid_w3_cs,
       supersid_w4_cs  => supersid_w4_cs,
       reg_loopback_cs => reg_loopback_cs,
-      leftsid_audio   => leftsid_audio,
-      rightsid_audio  => rightsid_audio,
-      frontsid_audio  => frontsid_audio,
-      backsid_audio   => backsid_audio,
+      leftsid_out     => leftsid_audio,
+      rightsid_out    => rightsid_audio,
+      frontsid_out    => frontsid_audio,
+      backsid_out     => backsid_audio,
+      leftsid_combined => leftsid_combined,
+      rightsid_combined => rightsid_combined,
       data_i          => data_i,
       data_o          => data_o,
       filter_cs       => filter_cs,
@@ -1348,11 +1352,14 @@ begin
     micLRSel => micLRSel,
     headphone_mic => headphone_mic,
 
-    leftsid_audio => leftsid_audio,
-    rightsid_audio => rightsid_audio,
-    frontsid_audio => frontsid_audio,
-    backsid_audio => backsid_audio,
+    -- leftsid_audio => leftsid_audio,
+    -- rightsid_audio => rightsid_audio,
+    -- frontsid_audio => frontsid_audio,
+    -- backsid_audio => backsid_audio,
 
+    leftsid_audio_combined => leftsid_combined,
+    rightsid_audio_combined => rightsid_combined,    
+    
     -- PDM audio output for various boards
     ampSD => ampSD,
     ampPWM_l => ampPWM_l,
@@ -2249,7 +2256,9 @@ begin
       -- @IO:GS $FF62000-$FF62FFF - SuperSID wavetable 2 (NYI)
       -- @IO:GS $FF63000-$FF63FFF - SuperSID wavetable 3 (NYI)
       -- @IO:GS $FF64000-$FF64FFF - SuperSID wavetable 4 (NYI)
-      -- @IO:GS $FF65xxx - SID register loopback
+      -- @IO:GS $FF65000-$FF6507F - SID register loopback
+      -- @IO:GS $FF65080-$FF65FFF - Reserved register loopback
+      -- @IO:GS $FF66000-$FF6FFFF - Reserved
       filter_cs <= '0';
       supersid_w1_cs <= '0';
       supersid_w2_cs <= '0';
