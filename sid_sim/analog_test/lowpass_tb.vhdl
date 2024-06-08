@@ -15,9 +15,9 @@ begin  -- architecture testbench
 
   lowpass : entity work.resistor_capacitor(Experimental)
     generic map (
-      capacitor_uf => 47,
-      charge_res_uohm => 100,
-      discharge_res_uohm => 2000)
+      capacitor_f => 0.00000000047,
+      charge_res_ohm => 1153.0,
+      discharge_res_ohm => 1153.0)
     port map (
       signal_in  => signal_in,
       signal_out => signal_out,
@@ -38,9 +38,9 @@ begin  -- architecture testbench
     
     constant pattern : pattern_array := (
       (x"00000000",40),
-      (x"80000000",40000),
+      (x"FFFFFFFF",400000),
       (x"40000000",8000),
-      (x"c0000000",40000)
+      (x"c0000000",400000)
       );
     
   begin  -- process main

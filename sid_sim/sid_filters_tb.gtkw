@@ -1,0 +1,105 @@
+[*]
+[*] GTKWave Analyzer v3.3.114 (w)1999-2023 BSI
+[*] Sat Jun  8 20:05:54 2024
+[*]
+[dumpfile] "/home/unkn0wn/mega65-core/sid_sim/sid_filters_tb.ghw"
+[dumpfile_mtime] "Sat Jun  8 20:05:54 2024"
+[dumpfile_size] 2819272
+[savefile] "/home/unkn0wn/mega65-core/sid_sim/sid_filters_tb.gtkw"
+[timestart] 2763200000000
+[size] 1440 866
+[pos] -1 -1
+*-36.618534 2840725000000 2840725000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top.
+[treeopen] top.sid_filters_tb.
+[treeopen] top.sid_filters_tb.filter.
+[treeopen] top.sid_filters_tb.filter.bp_opamp_out.
+[treeopen] top.sid_filters_tb.filter.bp_rc_out.
+[treeopen] top.sid_filters_tb.filter.hp_opamp_neg.
+[treeopen] top.sid_filters_tb.filter.hp_opamp_out.
+[treeopen] top.sid_filters_tb.filter.lp_opamp_out.
+[treeopen] top.sid_filters_tb.filter.lp_vout.
+[sst_width] 209
+[signals_width] 281
+[sst_expanded] 1
+[sst_vpaned_height] 247
+@88022
+#{top.sid_filters_tb.ext_in[12:0]} top.sid_filters_tb.ext_in[12] top.sid_filters_tb.ext_in[11] top.sid_filters_tb.ext_in[10] top.sid_filters_tb.ext_in[9] top.sid_filters_tb.ext_in[8] top.sid_filters_tb.ext_in[7] top.sid_filters_tb.ext_in[6] top.sid_filters_tb.ext_in[5] top.sid_filters_tb.ext_in[4] top.sid_filters_tb.ext_in[3] top.sid_filters_tb.ext_in[2] top.sid_filters_tb.ext_in[1] top.sid_filters_tb.ext_in[0]
+@20000
+-
+-
+-
+-
+@200
+-highpass output
+@80028
+top.sid_filters_tb.filter.hp_opamp_out.sign
+@88022
+#{top.sid_filters_tb.filter.hp_opamp_out.mag[31:0]} top.sid_filters_tb.filter.hp_opamp_out.mag[31] top.sid_filters_tb.filter.hp_opamp_out.mag[30] top.sid_filters_tb.filter.hp_opamp_out.mag[29] top.sid_filters_tb.filter.hp_opamp_out.mag[28] top.sid_filters_tb.filter.hp_opamp_out.mag[27] top.sid_filters_tb.filter.hp_opamp_out.mag[26] top.sid_filters_tb.filter.hp_opamp_out.mag[25] top.sid_filters_tb.filter.hp_opamp_out.mag[24] top.sid_filters_tb.filter.hp_opamp_out.mag[23] top.sid_filters_tb.filter.hp_opamp_out.mag[22] top.sid_filters_tb.filter.hp_opamp_out.mag[21] top.sid_filters_tb.filter.hp_opamp_out.mag[20] top.sid_filters_tb.filter.hp_opamp_out.mag[19] top.sid_filters_tb.filter.hp_opamp_out.mag[18] top.sid_filters_tb.filter.hp_opamp_out.mag[17] top.sid_filters_tb.filter.hp_opamp_out.mag[16] top.sid_filters_tb.filter.hp_opamp_out.mag[15] top.sid_filters_tb.filter.hp_opamp_out.mag[14] top.sid_filters_tb.filter.hp_opamp_out.mag[13] top.sid_filters_tb.filter.hp_opamp_out.mag[12] top.sid_filters_tb.filter.hp_opamp_out.mag[11] top.sid_filters_tb.filter.hp_opamp_out.mag[10] top.sid_filters_tb.filter.hp_opamp_out.mag[9] top.sid_filters_tb.filter.hp_opamp_out.mag[8] top.sid_filters_tb.filter.hp_opamp_out.mag[7] top.sid_filters_tb.filter.hp_opamp_out.mag[6] top.sid_filters_tb.filter.hp_opamp_out.mag[5] top.sid_filters_tb.filter.hp_opamp_out.mag[4] top.sid_filters_tb.filter.hp_opamp_out.mag[3] top.sid_filters_tb.filter.hp_opamp_out.mag[2] top.sid_filters_tb.filter.hp_opamp_out.mag[1] top.sid_filters_tb.filter.hp_opamp_out.mag[0]
+#{top.sid_filters_tb.filter.hp_vis[32:0]} top.sid_filters_tb.filter.hp_vis[32] top.sid_filters_tb.filter.hp_vis[31] top.sid_filters_tb.filter.hp_vis[30] top.sid_filters_tb.filter.hp_vis[29] top.sid_filters_tb.filter.hp_vis[28] top.sid_filters_tb.filter.hp_vis[27] top.sid_filters_tb.filter.hp_vis[26] top.sid_filters_tb.filter.hp_vis[25] top.sid_filters_tb.filter.hp_vis[24] top.sid_filters_tb.filter.hp_vis[23] top.sid_filters_tb.filter.hp_vis[22] top.sid_filters_tb.filter.hp_vis[21] top.sid_filters_tb.filter.hp_vis[20] top.sid_filters_tb.filter.hp_vis[19] top.sid_filters_tb.filter.hp_vis[18] top.sid_filters_tb.filter.hp_vis[17] top.sid_filters_tb.filter.hp_vis[16] top.sid_filters_tb.filter.hp_vis[15] top.sid_filters_tb.filter.hp_vis[14] top.sid_filters_tb.filter.hp_vis[13] top.sid_filters_tb.filter.hp_vis[12] top.sid_filters_tb.filter.hp_vis[11] top.sid_filters_tb.filter.hp_vis[10] top.sid_filters_tb.filter.hp_vis[9] top.sid_filters_tb.filter.hp_vis[8] top.sid_filters_tb.filter.hp_vis[7] top.sid_filters_tb.filter.hp_vis[6] top.sid_filters_tb.filter.hp_vis[5] top.sid_filters_tb.filter.hp_vis[4] top.sid_filters_tb.filter.hp_vis[3] top.sid_filters_tb.filter.hp_vis[2] top.sid_filters_tb.filter.hp_vis[1] top.sid_filters_tb.filter.hp_vis[0]
+@20000
+-
+-
+-
+-
+@200
+-bandpass output
+@80028
+top.sid_filters_tb.filter.bp_opamp_out.sign
+@88022
+#{top.sid_filters_tb.filter.bp_opamp_out.mag[31:0]} top.sid_filters_tb.filter.bp_opamp_out.mag[31] top.sid_filters_tb.filter.bp_opamp_out.mag[30] top.sid_filters_tb.filter.bp_opamp_out.mag[29] top.sid_filters_tb.filter.bp_opamp_out.mag[28] top.sid_filters_tb.filter.bp_opamp_out.mag[27] top.sid_filters_tb.filter.bp_opamp_out.mag[26] top.sid_filters_tb.filter.bp_opamp_out.mag[25] top.sid_filters_tb.filter.bp_opamp_out.mag[24] top.sid_filters_tb.filter.bp_opamp_out.mag[23] top.sid_filters_tb.filter.bp_opamp_out.mag[22] top.sid_filters_tb.filter.bp_opamp_out.mag[21] top.sid_filters_tb.filter.bp_opamp_out.mag[20] top.sid_filters_tb.filter.bp_opamp_out.mag[19] top.sid_filters_tb.filter.bp_opamp_out.mag[18] top.sid_filters_tb.filter.bp_opamp_out.mag[17] top.sid_filters_tb.filter.bp_opamp_out.mag[16] top.sid_filters_tb.filter.bp_opamp_out.mag[15] top.sid_filters_tb.filter.bp_opamp_out.mag[14] top.sid_filters_tb.filter.bp_opamp_out.mag[13] top.sid_filters_tb.filter.bp_opamp_out.mag[12] top.sid_filters_tb.filter.bp_opamp_out.mag[11] top.sid_filters_tb.filter.bp_opamp_out.mag[10] top.sid_filters_tb.filter.bp_opamp_out.mag[9] top.sid_filters_tb.filter.bp_opamp_out.mag[8] top.sid_filters_tb.filter.bp_opamp_out.mag[7] top.sid_filters_tb.filter.bp_opamp_out.mag[6] top.sid_filters_tb.filter.bp_opamp_out.mag[5] top.sid_filters_tb.filter.bp_opamp_out.mag[4] top.sid_filters_tb.filter.bp_opamp_out.mag[3] top.sid_filters_tb.filter.bp_opamp_out.mag[2] top.sid_filters_tb.filter.bp_opamp_out.mag[1] top.sid_filters_tb.filter.bp_opamp_out.mag[0]
+#{top.sid_filters_tb.filter.bp_vis[32:0]} top.sid_filters_tb.filter.bp_vis[32] top.sid_filters_tb.filter.bp_vis[31] top.sid_filters_tb.filter.bp_vis[30] top.sid_filters_tb.filter.bp_vis[29] top.sid_filters_tb.filter.bp_vis[28] top.sid_filters_tb.filter.bp_vis[27] top.sid_filters_tb.filter.bp_vis[26] top.sid_filters_tb.filter.bp_vis[25] top.sid_filters_tb.filter.bp_vis[24] top.sid_filters_tb.filter.bp_vis[23] top.sid_filters_tb.filter.bp_vis[22] top.sid_filters_tb.filter.bp_vis[21] top.sid_filters_tb.filter.bp_vis[20] top.sid_filters_tb.filter.bp_vis[19] top.sid_filters_tb.filter.bp_vis[18] top.sid_filters_tb.filter.bp_vis[17] top.sid_filters_tb.filter.bp_vis[16] top.sid_filters_tb.filter.bp_vis[15] top.sid_filters_tb.filter.bp_vis[14] top.sid_filters_tb.filter.bp_vis[13] top.sid_filters_tb.filter.bp_vis[12] top.sid_filters_tb.filter.bp_vis[11] top.sid_filters_tb.filter.bp_vis[10] top.sid_filters_tb.filter.bp_vis[9] top.sid_filters_tb.filter.bp_vis[8] top.sid_filters_tb.filter.bp_vis[7] top.sid_filters_tb.filter.bp_vis[6] top.sid_filters_tb.filter.bp_vis[5] top.sid_filters_tb.filter.bp_vis[4] top.sid_filters_tb.filter.bp_vis[3] top.sid_filters_tb.filter.bp_vis[2] top.sid_filters_tb.filter.bp_vis[1] top.sid_filters_tb.filter.bp_vis[0]
+@20000
+-
+-
+-
+-
+@200
+-lowpass output
+@80028
+top.sid_filters_tb.filter.lp_opamp_out.sign
+@88022
+#{top.sid_filters_tb.filter.lp_opamp_out.mag[31:0]} top.sid_filters_tb.filter.lp_opamp_out.mag[31] top.sid_filters_tb.filter.lp_opamp_out.mag[30] top.sid_filters_tb.filter.lp_opamp_out.mag[29] top.sid_filters_tb.filter.lp_opamp_out.mag[28] top.sid_filters_tb.filter.lp_opamp_out.mag[27] top.sid_filters_tb.filter.lp_opamp_out.mag[26] top.sid_filters_tb.filter.lp_opamp_out.mag[25] top.sid_filters_tb.filter.lp_opamp_out.mag[24] top.sid_filters_tb.filter.lp_opamp_out.mag[23] top.sid_filters_tb.filter.lp_opamp_out.mag[22] top.sid_filters_tb.filter.lp_opamp_out.mag[21] top.sid_filters_tb.filter.lp_opamp_out.mag[20] top.sid_filters_tb.filter.lp_opamp_out.mag[19] top.sid_filters_tb.filter.lp_opamp_out.mag[18] top.sid_filters_tb.filter.lp_opamp_out.mag[17] top.sid_filters_tb.filter.lp_opamp_out.mag[16] top.sid_filters_tb.filter.lp_opamp_out.mag[15] top.sid_filters_tb.filter.lp_opamp_out.mag[14] top.sid_filters_tb.filter.lp_opamp_out.mag[13] top.sid_filters_tb.filter.lp_opamp_out.mag[12] top.sid_filters_tb.filter.lp_opamp_out.mag[11] top.sid_filters_tb.filter.lp_opamp_out.mag[10] top.sid_filters_tb.filter.lp_opamp_out.mag[9] top.sid_filters_tb.filter.lp_opamp_out.mag[8] top.sid_filters_tb.filter.lp_opamp_out.mag[7] top.sid_filters_tb.filter.lp_opamp_out.mag[6] top.sid_filters_tb.filter.lp_opamp_out.mag[5] top.sid_filters_tb.filter.lp_opamp_out.mag[4] top.sid_filters_tb.filter.lp_opamp_out.mag[3] top.sid_filters_tb.filter.lp_opamp_out.mag[2] top.sid_filters_tb.filter.lp_opamp_out.mag[1] top.sid_filters_tb.filter.lp_opamp_out.mag[0]
+#{top.sid_filters_tb.filter.lp_vis[32:0]} top.sid_filters_tb.filter.lp_vis[32] top.sid_filters_tb.filter.lp_vis[31] top.sid_filters_tb.filter.lp_vis[30] top.sid_filters_tb.filter.lp_vis[29] top.sid_filters_tb.filter.lp_vis[28] top.sid_filters_tb.filter.lp_vis[27] top.sid_filters_tb.filter.lp_vis[26] top.sid_filters_tb.filter.lp_vis[25] top.sid_filters_tb.filter.lp_vis[24] top.sid_filters_tb.filter.lp_vis[23] top.sid_filters_tb.filter.lp_vis[22] top.sid_filters_tb.filter.lp_vis[21] top.sid_filters_tb.filter.lp_vis[20] top.sid_filters_tb.filter.lp_vis[19] top.sid_filters_tb.filter.lp_vis[18] top.sid_filters_tb.filter.lp_vis[17] top.sid_filters_tb.filter.lp_vis[16] top.sid_filters_tb.filter.lp_vis[15] top.sid_filters_tb.filter.lp_vis[14] top.sid_filters_tb.filter.lp_vis[13] top.sid_filters_tb.filter.lp_vis[12] top.sid_filters_tb.filter.lp_vis[11] top.sid_filters_tb.filter.lp_vis[10] top.sid_filters_tb.filter.lp_vis[9] top.sid_filters_tb.filter.lp_vis[8] top.sid_filters_tb.filter.lp_vis[7] top.sid_filters_tb.filter.lp_vis[6] top.sid_filters_tb.filter.lp_vis[5] top.sid_filters_tb.filter.lp_vis[4] top.sid_filters_tb.filter.lp_vis[3] top.sid_filters_tb.filter.lp_vis[2] top.sid_filters_tb.filter.lp_vis[1] top.sid_filters_tb.filter.lp_vis[0]
+@20000
+-
+-
+-
+-
+@200
+-highpass negative
+@80028
+top.sid_filters_tb.filter.hp_opamp_neg.sign
+@88022
+#{top.sid_filters_tb.filter.hp_opamp_neg.mag[31:0]} top.sid_filters_tb.filter.hp_opamp_neg.mag[31] top.sid_filters_tb.filter.hp_opamp_neg.mag[30] top.sid_filters_tb.filter.hp_opamp_neg.mag[29] top.sid_filters_tb.filter.hp_opamp_neg.mag[28] top.sid_filters_tb.filter.hp_opamp_neg.mag[27] top.sid_filters_tb.filter.hp_opamp_neg.mag[26] top.sid_filters_tb.filter.hp_opamp_neg.mag[25] top.sid_filters_tb.filter.hp_opamp_neg.mag[24] top.sid_filters_tb.filter.hp_opamp_neg.mag[23] top.sid_filters_tb.filter.hp_opamp_neg.mag[22] top.sid_filters_tb.filter.hp_opamp_neg.mag[21] top.sid_filters_tb.filter.hp_opamp_neg.mag[20] top.sid_filters_tb.filter.hp_opamp_neg.mag[19] top.sid_filters_tb.filter.hp_opamp_neg.mag[18] top.sid_filters_tb.filter.hp_opamp_neg.mag[17] top.sid_filters_tb.filter.hp_opamp_neg.mag[16] top.sid_filters_tb.filter.hp_opamp_neg.mag[15] top.sid_filters_tb.filter.hp_opamp_neg.mag[14] top.sid_filters_tb.filter.hp_opamp_neg.mag[13] top.sid_filters_tb.filter.hp_opamp_neg.mag[12] top.sid_filters_tb.filter.hp_opamp_neg.mag[11] top.sid_filters_tb.filter.hp_opamp_neg.mag[10] top.sid_filters_tb.filter.hp_opamp_neg.mag[9] top.sid_filters_tb.filter.hp_opamp_neg.mag[8] top.sid_filters_tb.filter.hp_opamp_neg.mag[7] top.sid_filters_tb.filter.hp_opamp_neg.mag[6] top.sid_filters_tb.filter.hp_opamp_neg.mag[5] top.sid_filters_tb.filter.hp_opamp_neg.mag[4] top.sid_filters_tb.filter.hp_opamp_neg.mag[3] top.sid_filters_tb.filter.hp_opamp_neg.mag[2] top.sid_filters_tb.filter.hp_opamp_neg.mag[1] top.sid_filters_tb.filter.hp_opamp_neg.mag[0]
+@20000
+-
+-
+-
+-
+@200
+-bandpass RC
+@80028
+top.sid_filters_tb.filter.bp_rc_out.sign
+@88022
+#{top.sid_filters_tb.filter.bp_rc_out.mag[31:0]} top.sid_filters_tb.filter.bp_rc_out.mag[31] top.sid_filters_tb.filter.bp_rc_out.mag[30] top.sid_filters_tb.filter.bp_rc_out.mag[29] top.sid_filters_tb.filter.bp_rc_out.mag[28] top.sid_filters_tb.filter.bp_rc_out.mag[27] top.sid_filters_tb.filter.bp_rc_out.mag[26] top.sid_filters_tb.filter.bp_rc_out.mag[25] top.sid_filters_tb.filter.bp_rc_out.mag[24] top.sid_filters_tb.filter.bp_rc_out.mag[23] top.sid_filters_tb.filter.bp_rc_out.mag[22] top.sid_filters_tb.filter.bp_rc_out.mag[21] top.sid_filters_tb.filter.bp_rc_out.mag[20] top.sid_filters_tb.filter.bp_rc_out.mag[19] top.sid_filters_tb.filter.bp_rc_out.mag[18] top.sid_filters_tb.filter.bp_rc_out.mag[17] top.sid_filters_tb.filter.bp_rc_out.mag[16] top.sid_filters_tb.filter.bp_rc_out.mag[15] top.sid_filters_tb.filter.bp_rc_out.mag[14] top.sid_filters_tb.filter.bp_rc_out.mag[13] top.sid_filters_tb.filter.bp_rc_out.mag[12] top.sid_filters_tb.filter.bp_rc_out.mag[11] top.sid_filters_tb.filter.bp_rc_out.mag[10] top.sid_filters_tb.filter.bp_rc_out.mag[9] top.sid_filters_tb.filter.bp_rc_out.mag[8] top.sid_filters_tb.filter.bp_rc_out.mag[7] top.sid_filters_tb.filter.bp_rc_out.mag[6] top.sid_filters_tb.filter.bp_rc_out.mag[5] top.sid_filters_tb.filter.bp_rc_out.mag[4] top.sid_filters_tb.filter.bp_rc_out.mag[3] top.sid_filters_tb.filter.bp_rc_out.mag[2] top.sid_filters_tb.filter.bp_rc_out.mag[1] top.sid_filters_tb.filter.bp_rc_out.mag[0]
+@20000
+-
+-
+-
+-
+@200
+-lowpass RC
+@80028
+top.sid_filters_tb.filter.lp_rc_out.sign
+@88022
+#{top.sid_filters_tb.filter.lp_rc_out.mag[31:0]} top.sid_filters_tb.filter.lp_rc_out.mag[31] top.sid_filters_tb.filter.lp_rc_out.mag[30] top.sid_filters_tb.filter.lp_rc_out.mag[29] top.sid_filters_tb.filter.lp_rc_out.mag[28] top.sid_filters_tb.filter.lp_rc_out.mag[27] top.sid_filters_tb.filter.lp_rc_out.mag[26] top.sid_filters_tb.filter.lp_rc_out.mag[25] top.sid_filters_tb.filter.lp_rc_out.mag[24] top.sid_filters_tb.filter.lp_rc_out.mag[23] top.sid_filters_tb.filter.lp_rc_out.mag[22] top.sid_filters_tb.filter.lp_rc_out.mag[21] top.sid_filters_tb.filter.lp_rc_out.mag[20] top.sid_filters_tb.filter.lp_rc_out.mag[19] top.sid_filters_tb.filter.lp_rc_out.mag[18] top.sid_filters_tb.filter.lp_rc_out.mag[17] top.sid_filters_tb.filter.lp_rc_out.mag[16] top.sid_filters_tb.filter.lp_rc_out.mag[15] top.sid_filters_tb.filter.lp_rc_out.mag[14] top.sid_filters_tb.filter.lp_rc_out.mag[13] top.sid_filters_tb.filter.lp_rc_out.mag[12] top.sid_filters_tb.filter.lp_rc_out.mag[11] top.sid_filters_tb.filter.lp_rc_out.mag[10] top.sid_filters_tb.filter.lp_rc_out.mag[9] top.sid_filters_tb.filter.lp_rc_out.mag[8] top.sid_filters_tb.filter.lp_rc_out.mag[7] top.sid_filters_tb.filter.lp_rc_out.mag[6] top.sid_filters_tb.filter.lp_rc_out.mag[5] top.sid_filters_tb.filter.lp_rc_out.mag[4] top.sid_filters_tb.filter.lp_rc_out.mag[3] top.sid_filters_tb.filter.lp_rc_out.mag[2] top.sid_filters_tb.filter.lp_rc_out.mag[1] top.sid_filters_tb.filter.lp_rc_out.mag[0]
+@20000
+-
+-
+-
+-
+@80022
+#{top.sid_filters_tb.filter.filter_table_val[15:0]} top.sid_filters_tb.filter.filter_table_val[15] top.sid_filters_tb.filter.filter_table_val[14] top.sid_filters_tb.filter.filter_table_val[13] top.sid_filters_tb.filter.filter_table_val[12] top.sid_filters_tb.filter.filter_table_val[11] top.sid_filters_tb.filter.filter_table_val[10] top.sid_filters_tb.filter.filter_table_val[9] top.sid_filters_tb.filter.filter_table_val[8] top.sid_filters_tb.filter.filter_table_val[7] top.sid_filters_tb.filter.filter_table_val[6] top.sid_filters_tb.filter.filter_table_val[5] top.sid_filters_tb.filter.filter_table_val[4] top.sid_filters_tb.filter.filter_table_val[3] top.sid_filters_tb.filter.filter_table_val[2] top.sid_filters_tb.filter.filter_table_val[1] top.sid_filters_tb.filter.filter_table_val[0]
+[pattern_trace] 1
+[pattern_trace] 0

@@ -1,13 +1,18 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.float_pkg.all;
+use ieee.fixed_pkg.all;
+use ieee.fixed_float_types.all;
+use ieee.math_real.all;
 
 entity resistor_capacitor is
   
   generic (
-    capacitor_uf : integer := 470;
-    charge_res_mohm : integer := 1000;
-    discharge_res_mohm : integer := 1000);  -- capacitor multiplication coefficient
+    capacitor_f : real := 470.0;
+    charge_res_ohm : real := 1000.0;
+    discharge_res_ohm : real := 1000.0;
+    timestep : real := 0.000000025);  -- capacitor multiplication coefficient
 
   port (
     signal_in  : in  unsigned(31 downto 0);  -- input signal
@@ -21,8 +26,10 @@ architecture Experimental of resistor_capacitor is
   subtype analog is unsigned(31 downto 0);
   subtype signed_analog is signed(31 downto 0);
 
-  constant charge_coefficient : analog := x"ffffffff" / (charge_res_mohm * capacitor_uf);
-  constant discharge_coefficient : analog := x"ffffffff" / (discharge_res_mohm * capacitor_uf);
+  constant charge_coefficient_r : real := 1.0 - (1.0 / 2.72 ** (timestep / (charge_res_ohm * capacitor_f)));
+  constant discharge_coefficient_r : real := 1.0 - (1.0 / 2.72 ** (timestep / (discharge_res_ohm * capacitor_f)));
+  constant charge_coefficient : analog := to_unsigned(natural(charge_coefficient_r * 4294967295.0), 32);
+  constant discharge_coefficient : analog := to_unsigned(natural(discharge_coefficient_r * 4294967295.0), 32);
   
   -- purpose: accumulate change in capacitor
   function cap_acc (

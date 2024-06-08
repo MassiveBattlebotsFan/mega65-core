@@ -1,9 +1,11 @@
 #!/bin/bash
 
-# lowpass_tb
+# lowpass_tb, timer555
 
-ghdl-gcc -m -o 555 timer555
+RUNFILE="lowpass_tb"
+
+ghdl-gcc -m --std=08 -o $RUNFILE $RUNFILE
 
 sleep 1
 
-./555 --wave=555.ghw
+./$RUNFILE --wave=$RUNFILE.ghw

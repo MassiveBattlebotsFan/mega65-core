@@ -17,9 +17,9 @@ begin  -- architecture testbench
 
   ext_rc1 : entity work.resistor_capacitor(Experimental)
     generic map (
-      capacitor_uf => 47,
-      charge_res_mohm => 200,
-      discharge_res_mohm => 100)
+      capacitor_f => 0.000001,
+      charge_res_ohm => 10000.0,
+      discharge_res_ohm => 10330.0)
     port map (
       signal_in  => cap_input,
       signal_out => cap_output,
@@ -74,7 +74,7 @@ begin  -- architecture testbench
     
     constant pattern : pattern_array := (
       ('1',400),
-      ('0',400000)
+      ('0',1000000)
       );
     
   begin  -- process main
