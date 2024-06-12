@@ -30,7 +30,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity sid_filters is
+entity old_sid_filters is
 port (
 	clk         : in  std_logic; -- At least 12Mhz
 	rst         : in  std_logic;
@@ -58,7 +58,7 @@ port (
 );
 end entity;
 
-architecture beh of sid_filters is
+architecture beh of old_sid_filters is
 
 	alias filt        : unsigned(3 downto 0) is Res_Filt(3 downto 0);
 	alias res         : unsigned(3 downto 0) is Res_Filt(7 downto 4);

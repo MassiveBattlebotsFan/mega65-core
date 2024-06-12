@@ -15,12 +15,12 @@ architecture testbench of sid_filters_tb is
   signal input_valid, mode : std_logic := '0';
 
   -- outputs
-  signal sound : signed(18 downto 0) := (others => 'Z');
-  signal valid : std_logic := 'Z';
+  signal sound, sound2 : signed(18 downto 0) := (others => '0');
+  signal valid, valid2 : std_logic := 'Z';
 
   -- filter table stuff
-  signal filt_addr : integer range 0 to 2047 := 0;
-  signal filt_val : unsigned(15 downto 0) := (others => 'Z');
+  signal filt_addr, filt_addr2 : integer range 0 to 2047 := 0;
+  signal filt_val, filt_val2 : unsigned(15 downto 0) := (others => 'Z');
   signal mux_addr : unsigned(11 downto 0) := (others => 'Z');
   signal mux_di : unsigned(7 downto 0) := (others => 'Z');
 
@@ -47,6 +47,25 @@ begin  -- architecture testbench
       filter_table_addr => filt_addr,
       filter_table_val  => filt_val);
 
+  old_filter : entity work.old_sid_filters(beh)
+    port map (
+      clk               => clk,
+      rst               => rst,
+      Fc_lo             => fc_lo,
+      Fc_hi             => fc_hi,
+      Res_Filt          => res_filt,
+      Mode_Vol          => mode_vol,
+      voice1            => voice1,
+      voice2            => voice2,
+      voice3            => voice3,
+      ext_in            => ext_in,
+      input_valid       => input_valid,
+      mode              => mode,
+      sound             => sound2,
+      valid             => valid2,
+      filter_table_addr => filt_addr2,
+      filter_table_val  => filt_val2); 
+  
   filt_coeffs: entity work.sid_coeffs(beh)
     port map (
       clka  => clk,
@@ -67,8 +86,8 @@ begin  -- architecture testbench
       clk   => clk,
       addr0 => filt_addr,
       val0  => filt_val,
-      addr1 => 0,
-      val1  => open,
+      addr1 => filt_addr2,
+      val1  => filt_val2,
       addr2 => 0,
       val2  => open,
       addr3 => 0,
@@ -95,11 +114,15 @@ begin  -- architecture testbench
     type pattern_array is array (natural range <>) of pattern_type;
 
     constant patterns : pattern_array := (
-      (x"00", x"F0", x"00", x"00", 40, 10000, '1'),
-      (x"00", x"20", x"00", x"00", 40, 20000, '0'),
-      (x"00", x"F0", x"00", x"00", 40, 20000, '0'),
-      (x"00", x"20", x"00", x"00", 200, 40000, '0'),
-      (x"00", x"F0", x"00", x"00", 200, 40000, '0')
+      (x"00", x"80", x"20", x"4F", 1500, 4500, '1'),
+      (x"00", x"80", x"F0", x"0F", 15000, 30000, '0'),
+      (x"00", x"80", x"FF", x"1F", 15000, 30000, '0'),
+      (x"00", x"80", x"FF", x"2F", 15000, 30000, '0'),
+      (x"00", x"80", x"FF", x"4F", 15000, 30000, '0')
+      -- (x"00", x"C0", x"25", x"4F", 15000, 45000, '0'),
+      -- (x"00", x"80", x"25", x"4F", 15000, 45000, '0'),
+      -- (x"00", x"40", x"25", x"4F", 15000, 45000, '0'),
+      -- (x"00", x"00", x"25", x"4F", 15000, 45000, '0')
       );
     
   begin  -- process main
@@ -111,6 +134,7 @@ begin  -- architecture testbench
       mode_vol <= patterns(i).mode_vol;
       rst <= patterns(i).rst;
       gen_wave_freq <= patterns(i).gen_freq;
+      input_valid <= '1';
       
       for delaytime in 0 to patterns(i).delay loop
         clk <= '1';
@@ -131,7 +155,7 @@ begin  -- architecture testbench
     variable direction : std_logic := '0';
     variable tri_wave, saw_wave : unsigned(11 downto 0) := (others => '0');
     variable wait_states : integer := 0;
-    variable pulse : std_logic := '0';
+    variable pulse, pulse2 : std_logic := '0';
   begin  -- process gen_input_sig
     if rst = '1' then
       pulse := '0';
@@ -143,7 +167,7 @@ begin  -- architecture testbench
       if rising_edge(clk) then
         if wait_states > 0 then
           wait_states := wait_states - 1;
-          saw_wave := saw_wave + 1;
+          saw_wave := saw_wave + 4;
         else
           if direction = '1' then
             tri_wave := tri_wave - 16;
@@ -156,12 +180,18 @@ begin  -- architecture testbench
           elsif tri_wave = x"000" then
             direction := '0';
           end if;
+          if pulse = '1' then
+            pulse2 := not pulse2;
+          end if;
           wait_states := gen_wave_freq;
           pulse := not pulse;
         end if;
       end if;
     end if;
-    ext_in <= signed(('0'&saw_wave) + tri_wave) when pulse = '1' else (others => '0');
+    ext_in <= (others => pulse);--signed(('0'&saw_wave) + tri_wave) when pulse = '1' else (others => '0');
+    voice1 <= (others => pulse);--signed(saw_wave & '0');
+    voice2 <= (others => pulse);--signed(tri_wave & '0');
+    voice3 <= (others => pulse);
   end process gen_input_sig;
   
 end architecture testbench;
