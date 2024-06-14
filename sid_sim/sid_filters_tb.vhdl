@@ -114,11 +114,12 @@ begin  -- architecture testbench
     type pattern_array is array (natural range <>) of pattern_type;
 
     constant patterns : pattern_array := (
-      (x"00", x"80", x"20", x"4F", 1500, 4500, '1'),
-      (x"00", x"80", x"F0", x"0F", 15000, 30000, '0'),
-      (x"00", x"80", x"FF", x"1F", 15000, 30000, '0'),
-      (x"00", x"80", x"FF", x"2F", 15000, 30000, '0'),
-      (x"00", x"80", x"FF", x"4F", 15000, 30000, '0')
+      (x"00", x"00", x"00", x"0F", 0, 0, '1'),
+      (x"00", x"00", x"00", x"0F", 10000, 40000, '0'),
+      (x"00", x"00", x"01", x"1F", 10000, 40000, '0'),
+      (x"00", x"00", x"F1", x"2F", 10000, 40000, '0')
+      -- (x"00", x"00", x"01", x"1F", 11837, 23674, '0'),
+      -- (x"00", x"00", x"01", x"1F", 11837, 23674, '0')
       -- (x"00", x"C0", x"25", x"4F", 15000, 45000, '0'),
       -- (x"00", x"80", x"25", x"4F", 15000, 45000, '0'),
       -- (x"00", x"40", x"25", x"4F", 15000, 45000, '0'),
@@ -188,10 +189,10 @@ begin  -- architecture testbench
         end if;
       end if;
     end if;
-    ext_in <= (others => pulse);--signed(('0'&saw_wave) + tri_wave) when pulse = '1' else (others => '0');
+    -- ext_in <= (others => pulse);--signed(('0'&saw_wave) + tri_wave) when pulse = '1' else (others => '0');
     voice1 <= (others => pulse);--signed(saw_wave & '0');
-    voice2 <= (others => pulse);--signed(tri_wave & '0');
-    voice3 <= (others => pulse);
+    -- voice2 <= (others => pulse);--signed(tri_wave & '0');
+    -- voice3 <= (others => pulse);
   end process gen_input_sig;
   
 end architecture testbench;

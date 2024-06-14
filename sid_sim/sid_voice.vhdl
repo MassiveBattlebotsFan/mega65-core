@@ -374,7 +374,7 @@ begin
         --calculate the resulting volume (due to the envelope generator) of the
         --voice, signal_mux(12bit) * env_counter(8bit), so the result will
         --require 20 bits !!
-        signal_vol	<= signal_mux_clamped * env_counter;
+        signal_vol	<= signal_mux * env_counter;
 
         accumulator_latch <= accumulator;
         
