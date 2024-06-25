@@ -85,7 +85,7 @@ begin  -- architecture testbench
     port map (
       clk   => clk,
       addr0 => filt_addr,
-      val0  => filt_val,
+      val0  => open, --filt_val,
       addr1 => filt_addr2,
       val1  => filt_val2,
       addr2 => 0,
@@ -115,9 +115,10 @@ begin  -- architecture testbench
 
     constant patterns : pattern_array := (
       (x"00", x"00", x"00", x"0F", 0, 0, '1'),
-      (x"00", x"00", x"00", x"0F", 10000, 40000, '0'),
+      (x"00", x"00", x"00", x"0F", 10000, 20000, '0'),
       (x"00", x"00", x"01", x"1F", 10000, 40000, '0'),
-      (x"00", x"00", x"F1", x"2F", 10000, 40000, '0')
+      (x"00", x"00", x"01", x"2F", 10000, 40000, '0'),
+      (x"00", x"00", x"01", x"4F", 10000, 120000, '0')
       -- (x"00", x"00", x"01", x"1F", 11837, 23674, '0'),
       -- (x"00", x"00", x"01", x"1F", 11837, 23674, '0')
       -- (x"00", x"C0", x"25", x"4F", 15000, 45000, '0'),
@@ -127,7 +128,7 @@ begin  -- architecture testbench
       );
     
   begin  -- process main
-
+    filt_val <= x"0048";
     for i in patterns'range loop
       fc_lo <= patterns(i).fc_lo;
       fc_hi <= patterns(i).fc_hi;

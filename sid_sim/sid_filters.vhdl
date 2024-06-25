@@ -77,7 +77,8 @@ entity resistor_capacitor is
     signal_in_b_sign : in std_logic;
     signal_out_b : out unsigned(31 downto 0) := (others => '0');
     signal_out_b_sign : out std_logic := '0';
-    resistor_bypass : in  unsigned(31 downto 0) := (others => '0');
+    resistor_bypass_a : in  unsigned(31 downto 0) := (others => '0');
+    resistor_bypass_b : in  unsigned(31 downto 0) := (others => '0');
     step : in std_logic
     );  -- output signal
 
@@ -146,7 +147,7 @@ architecture Experimental of resistor_capacitor is
   signal result : analog := (x"00000000", '0');
   signal current : analog := (x"00000000", '0');
   signal phase : std_logic := '0';
-  signal prev_resistor_bypass : unsigned(31 downto 0) := (others => '0');
+  signal prev_resistor_bypass_a, prev_resistor_bypass_b : unsigned(31 downto 0) := (others => '0');
   signal precomputed_difference_a, precomputed_difference_b : unsigned(31 downto 0) := (others => '0');
 
   -- resistor bypass multiplier pipeline registers
@@ -212,7 +213,7 @@ begin  -- architecture Experimental
     if rising_edge(step) then
       if phase = '0' then
         cmb1 <= precomputed_difference_a;
-
+        rbb1 <= resistor_bypass_a;
         -- current_s1 <= cap1_out;
         -- target_s1 <= (signal_in_a, signal_in_a_sign);
         if cap1_out.sign /= signal_in_a_sign then
@@ -261,9 +262,9 @@ begin  -- architecture Experimental
         signal_out_b <= cap2_out.mag;
         signal_out_b_sign <= cap2_out.sign;
         rba1 <= charge_coefficient_b_diff;
+        rbb1 <= resistor_bypass_b;
         precomputed_difference_b <= rbo4(63 downto 32) + charge_coefficient_b;
       end if;
-      rbb1 <= resistor_bypass;
       phase <= not phase;
     end if;
   end process main;  
@@ -331,13 +332,13 @@ begin  -- architecture Experimental
         greater_sign := '1';
       end if;
       case combined_signs is
-        when "00" => output <= safe_sub(pos, neg);
+        when "00" => output <= safe_sub(pos, neg)(30 downto 0) & "0";
                      output_sign <= greater_sign;
-        when "01" => output <= safe_add(pos, neg);
+        when "01" => output <= safe_add(pos, neg)(30 downto 0) & "0";
                      output_sign <= '0';
-        when "10" => output <= safe_add(pos, neg);
+        when "10" => output <= safe_add(pos, neg)(30 downto 0) & "0";
                      output_sign <= '1';
-        when "11" => output <= safe_sub(neg, pos);
+        when "11" => output <= safe_sub(neg, pos)(30 downto 0) & "0";
                      output_sign <= not greater_sign;
         when others => null;
       end case;
@@ -538,9 +539,9 @@ begin
 
   res_cap : entity work.resistor_capacitor(Experimental)
     generic map (
-      charge_coefficient_bp => x"014E4219",
-      charge_coefficient_a => x"0000B851",
-      charge_coefficient_b => x"0000BC99")
+      charge_coefficient_bp => x"00E25393",  -- 14832531, 658.1 ohm, 22000pF cap
+      charge_coefficient_a => x"00000B9C",   -- 2972, 3.2844 Mohm, 22000pF cap
+      charge_coefficient_b => x"00000B9C")   -- 2972, 3.2844 Mohm, 22000pF cap
       -- capacitor_f       => 0.00000000047,  -- 0.00000000047
       -- charge_res_ohm    => 1035010.0,
       -- discharge_res_ohm => 1035010.0,
@@ -555,7 +556,8 @@ begin
       signal_in_b_sign => lp_rc_in.sign,  
       signal_out_b => lp_rc_out.mag,      
       signal_out_b_sign => lp_rc_out.sign,
-      resistor_bypass => bp_res_bypass,
+      resistor_bypass_a => bp_res_bypass,
+      resistor_bypass_b => lp_res_bypass,
       step       => clk);
 
   -- lp_res_cap : entity work.resistor_capacitor(Experimental)
@@ -623,11 +625,7 @@ begin
   begin
     if rising_edge(clk) then
 
-      if calculation_phase = '0' then
-        mult_a <= bp_opamp_out.mag;
-        mult_b <= resonance_coeff;
-        bp_resonance <= (mult_out(63 downto 32), not bp_opamp_out.sign);
-        
+      if calculation_phase = '0' then        
         -- bp_resonance <= bp_res2;
         -- mix the inputs
         -- mixed_selected_inputs := (x"00000000", '0');
@@ -660,7 +658,7 @@ begin
         
         -- Pass in the input, resonance (NYI), LP loopback, and the output itself
 
-        hp_opamp_neg <= add_with_saturation(add_with_saturation(mixed_selected_inputs,
+        hp_opamp_neg <= add_with_saturation(add_with_saturation(("00" & mixed_selected_inputs.mag(31 downto 2), mixed_selected_inputs.sign),
                                                                 bp_resonance),
                                             lp_vout);
         hp_vout <= hp_opamp_out;
@@ -669,7 +667,7 @@ begin
         end if;
 
         -- bp_vin <= ;
-        bp_res_bypass <= filter_table_val & x"0000";
+        bp_res_bypass <= filter_table_val & x"0000"; -- (fc & '0' & x"00000");
         bp_rc_in <= hp_vout; --bp_vin;
         bp_opamp_neg <= bp_rc_out;
         bp_vout <= bp_opamp_out;
@@ -677,9 +675,13 @@ begin
           bp_vis <= visualize_analog(bp_opamp_out);
         end if;
 
+        -- volume ladder
+        mult_a <= mixed_outputs.mag;
+        mult_b <= x"0" & volume & x"0000000";
+        final_mix <= analog_to_signed((mult_out(63 downto 32), not mixed_outputs.sign))(31 downto 13);
+        
         sound <= final_mix;
       else
-        resonance_coeff <= resonance_coeffs(to_integer(res));
         -- bandpass resonance control
         -- bp_resonance := (x"00000000", not bp_opamp_out.sign);
         -- if res(0) = '0' then
@@ -705,7 +707,7 @@ begin
         -- bp_resonance <= (bp_r1 + bp_r2 + bp_r3 + bp_r4, not bp_vout.sign);
         
         -- lp_vin <= bp_vout;
-        -- lp_res_bypass <= filter_table_val & x"0000";
+        lp_res_bypass <= filter_table_val & x"0000"; -- (fc & '0' & x"00000");
         lp_rc_in <= bp_vout; -- lp_vin;
         lp_opamp_neg <= lp_rc_out;
         lp_vout <= lp_opamp_out;
@@ -719,31 +721,31 @@ begin
 
         if filt(0) = '0' then
           -- voice 1 bypassed
-          v1b <= ("00" & unsigned(voice1(12 downto 0)) & "0" & x"0000", '0');
+          v1b <= ("0" & unsigned(voice1(12 downto 0)) & "00" & x"0000", '0');
         else
           v1b <= (x"00000000", '0');
         end if;
         if filt(1) = '0' then
           -- voice 2 bypassed
-          v2b <= ("00" & unsigned(voice2(12 downto 0)) & "0" & x"0000", '0');
+          v2b <= ("0" & unsigned(voice2(12 downto 0)) & "00" & x"0000", '0');
         else
           v2b <= (x"00000000", '0');
         end if;
         if filt(2) = '0' and voice3off = '0' then
           -- voice 3 bypassed
-          v3b <= ("00" & unsigned(voice3(12 downto 0)) & "0" & x"0000", '0');
+          v3b <= ("0" & unsigned(voice3(12 downto 0)) & "00" & x"0000", '0');
         else
           v3b <= (x"00000000", '0');
         end if;
         if filt(3) = '0' then
           -- ext in bypassed
-          extb <= ("00" & unsigned(ext_in(12 downto 0)) & "0" & x"0000", '0');
+          extb <= ("0" & unsigned(ext_in(12 downto 0)) & "00" & x"0000", '0');
         else
           extb <= (x"00000000", '0');
         end if;
 
         mixed_outputs := add_with_saturation(v1b, add_with_saturation(v2b, add_with_saturation(v3b, extb)));
-        -- mixed_outputs := ("00" & mixed_outputs.mag(31 downto 2), mixed_outputs.sign);
+        mixed_outputs := ("000" & mixed_outputs.mag(31 downto 3), mixed_outputs.sign);
         --(o"0" & (("000" & v1b) + v2b + v3b + extb) & "0" & x"000", '0');
         -- nr_vis <= visualize_analog(mixed_outputs);
         -- filter outputs
@@ -751,16 +753,16 @@ begin
           mixed_outputs := add_with_saturation(mixed_outputs, (lp_vout.mag, lp_vout.sign));
         end if;
         if hp_bp_lp(1) = '1' then
-          mixed_outputs := add_with_saturation(mixed_outputs, (bp_vout.mag, bp_vout.sign));
+          mixed_outputs := add_with_saturation(mixed_outputs, (bp_vout.mag(31 downto 0), bp_vout.sign));
         end if;
         if hp_bp_lp(2) = '1' then
           mixed_outputs := add_with_saturation(mixed_outputs, ("00" & hp_vout.mag(31 downto 2), hp_vout.sign));
         end if;
 
-        -- volume ladder
-        mult_a <= mixed_outputs.mag;
-        mult_b <= x"0" & volume & x"0000000";
-        final_mix <= analog_to_signed((mult_out(63 downto 32), not mixed_outputs.sign))(31 downto 13);
+        resonance_coeff <= resonance_coeffs(to_integer(res));
+        mult_a <= bp_opamp_out.mag;
+        mult_b <= resonance_coeff;
+        bp_resonance <= (mult_out(63 downto 32), not bp_vout.sign);
       end if;
       calculation_phase <= not calculation_phase;
     end if;
