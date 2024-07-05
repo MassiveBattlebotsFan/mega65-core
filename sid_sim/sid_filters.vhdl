@@ -678,7 +678,7 @@ begin
         -- volume ladder
         mult_a <= mixed_outputs.mag;
         mult_b <= x"0" & volume & x"0000000";
-        final_mix <= analog_to_signed((mult_out(63 downto 32), not mixed_outputs.sign))(31 downto 13);
+        final_mix <= analog_to_signed((mult_out(63 downto 32), not mixed_outputs.sign))(30 downto 12);
         
         sound <= final_mix;
       else
@@ -709,7 +709,7 @@ begin
         -- lp_vin <= bp_vout;
         lp_res_bypass <= filter_table_val & x"0000"; -- (fc & '0' & x"00000");
         lp_rc_in <= bp_vout; -- lp_vin;
-        lp_opamp_neg <= lp_rc_out;
+        lp_opamp_neg <= (lp_rc_out.mag(30 downto 0) & '0', lp_rc_out.sign);
         lp_vout <= lp_opamp_out;
         if enable_vis then
           lp_vis <= visualize_analog(lp_opamp_out);
