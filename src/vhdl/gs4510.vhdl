@@ -7196,7 +7196,7 @@ begin
               
               if (hypervisor_mode='0')
                 and ((irq_pending='1' and flag_i='0') or nmi_pending='1')
-                and (monitor_irq_inhibit = '0')) then
+                and (monitor_irq_inhibit = '0') then
                                         -- An interrupt has occurred 
                 report "Interrupt detected in 6502 mode, decrementing PC";
                 state <= Interrupt;
