@@ -6895,7 +6895,8 @@ begin
               -- single-cycle instruction
               if (hypervisor_mode='0') and (
                 (no_interrupt = '0')
-                and ((irq_pending='1' and flag_i='0') or nmi_pending='1')) then
+                and ((irq_pending='1' and flag_i='0') or nmi_pending='1')
+                and (monitor_irq_inhibit = '0')) then
                                         -- An interrupt has occurred
                 report "Interrupt detected, decrementing PC";
                 state <= Interrupt;
@@ -7194,7 +7195,8 @@ begin
               reg_instruction <= instruction_lut(to_integer(emu6502&memory_read_value));
               
               if (hypervisor_mode='0')
-                and ((irq_pending='1' and flag_i='0') or nmi_pending='1') then
+                and ((irq_pending='1' and flag_i='0') or nmi_pending='1')
+                and (monitor_irq_inhibit = '0')) then
                                         -- An interrupt has occurred 
                 report "Interrupt detected in 6502 mode, decrementing PC";
                 state <= Interrupt;
