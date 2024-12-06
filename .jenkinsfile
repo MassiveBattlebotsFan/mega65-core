@@ -12,6 +12,9 @@ pipeline {
         stage('Setup toolchain') {
             steps {
                 sh 'echo -n "LOCAL CC65 VERSION: " && cc65 --version'
+                script {
+                  currentBuild.description = env.GIT_COMMIT
+                }
                 sh 'release-build/prepare.sh prunepkg'
             }
         }
