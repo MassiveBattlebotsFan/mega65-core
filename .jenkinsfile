@@ -13,7 +13,7 @@ pipeline {
             steps {
                 sh 'echo -n "LOCAL CC65 VERSION: " && cc65 --version'
                 script {
-                    currentBuild.description = "Commit: ${GIT_COMMIT_SHORT}"
+                    currentBuild.description = "Commit: ${GIT_COMMIT_SHORT}\r\n${GIT_COMMITTER}"
                 }
                 sh 'release-build/prepare.sh prunepkg'
             }
@@ -109,6 +109,10 @@ pipeline {
         GIT_COMMIT_SHORT = sh(
             script: "printf \$(git rev-parse --short ${GIT_COMMIT})",
             returnStdout: true
-        )
+        ).trim()
+        GIT_COMMITTER = sh(
+            script: "git --no-pager show -s --format='%an <%ae>' ${GIT_COMMIT}",
+            returnStdout: true
+        ).trim()
     }
 }
