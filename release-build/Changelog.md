@@ -42,6 +42,9 @@ This is the Summer 2024 Release.
   - CONFIG: Add option to disable floppy drive sounds while accessing SD
     [#622](https://github.com/MEGA65/mega65-core/issues/622)
 - Bugfixes:
+  - Disallow interrupts while stepping through code
+    [#847](https://github.com/MEGA65/mega65-core/issues/847)
+    [PR#848](https://github.com/MEGA65/mega65-core/pull/848)
   - RRB sprite number count limited because of colour ram wrap-around
     [#789](https://github.com/MEGA65/mega65-core/issues/789)
   - Integrate HDMI audio bugfix from the Tyto 2 project
