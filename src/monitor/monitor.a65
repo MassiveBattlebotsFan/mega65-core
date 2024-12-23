@@ -961,6 +961,10 @@ trace_cmd:
       bne         +
       ldx         #0
       bra         do_trace
+      cmp         #'2               ; Stop CPU with IRQs enabled
+      bne         +
+      ldx         #$16
+      bra         do_trace
 *     cmp         #'0               ; Let CPU free run, but begin recording history
       bne         +
       ldx         #2
@@ -1007,6 +1011,7 @@ trace_table:
       .byte       $ff, trace_hyper_trap                                               ; $10 - Hypervisor trap enable
       .byte       $ff - trace_flag_en, $00                                            ; $12 - Flag break disable
       .byte       $ff, trace_flag_en                                                  ; $14 - Flag break enable
+      .byte       $ff - trace_irq_dis, trace_en                                       ; $16 - Trace Enabled, IRQ Enabled
 
 trace_step:
       lda         mon_trace_step

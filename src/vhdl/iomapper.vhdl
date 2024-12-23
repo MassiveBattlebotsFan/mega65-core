@@ -60,9 +60,9 @@ entity iomapper is
         viciv_frame_indicate : in std_logic;
         eth_hyperrupt : out std_logic;
 
-        hw_errata_level : out unsigned(7 downto 0);
-        hw_errata_enable_toggle : in std_logic := '0';
-        hw_errata_disable_toggle : in std_logic := '0';
+        hw_errata_level : inout unsigned(7 downto 0);
+        hw_errata_enable_toggle : in std_logic;
+        hw_errata_disable_toggle : in std_logic;
 
         max10_fpga_date : in unsigned(15 downto 0);
         max10_fpga_commit : in unsigned(31 downto 0);
@@ -145,6 +145,7 @@ entity iomapper is
 
         porta_pins : inout  std_logic_vector(7 downto 0) := (others => 'Z');
         portb_pins : in  std_logic_vector(7 downto 0);
+        portb_charge_pins : out std_logic;
         keyboard_column8_out : out std_logic;
         key_left : in std_logic;
         key_up : in std_logic;
@@ -221,14 +222,11 @@ entity iomapper is
          ----------------------------------------------------------------------
         -- CBM floppy serial port
         ----------------------------------------------------------------------
-        iec_clk_en : out std_logic := '0';
-        iec_data_en : out std_logic := '0';
-        iec_data_o : out std_logic := '1';
-        iec_reset : out std_logic := '1';
-        iec_clk_o : out std_logic := '1';
-        iec_atn_o : out std_logic := '1';
-        iec_srq_o : out std_logic := '1';
-        iec_srq_en : out std_logic := '0';
+        iec_clk_en_n : out std_logic := '0';
+        iec_data_en_n : out std_logic := '0';
+        iec_reset_en_n : out std_logic := '1';
+        iec_srq_en_n : out std_logic := '0';
+        iec_atn_en_n : out std_logic := '0';
         iec_srq_external : in std_logic := 'Z';
         iec_data_external : in std_logic := 'Z';
         iec_clk_external : in std_logic := 'Z';
@@ -315,7 +313,7 @@ entity iomapper is
     eth_rxer : in std_logic;
     eth_interrupt : in std_logic;
 
-    ethernet_cpu_arrest : out std_logic;
+    ethernet_cpu_arrest : out std_logic := '0';
 
     -------------------------------------------------------------------------
     -- Lines for the SDcard interface itself
@@ -583,20 +581,35 @@ architecture behavioral of iomapper is
   signal joya_rotate : std_logic;
   signal joyb_rotate : std_logic;
 
-  signal iec_atn_reflect : std_logic := '1';
-  signal iec_clk_reflect : std_logic := '1';
-  signal iec_data_reflect : std_logic := '1';
-  signal iec_atn_fromcia : std_logic := '1';
-  signal iec_clk_fromcia : std_logic := '1';
-  signal iec_data_fromcia : std_logic := '1';
+  signal iec_atn_reflect : std_logic;
+  signal iec_clk_reflect : std_logic;
+  signal iec_data_reflect : std_logic;
+  signal iec_atn_fromcia : std_logic;
+  signal iec_clk_fromcia : std_logic;
+  signal iec_data_fromcia : std_logic;
+  signal iec_clk_ddr : std_logic;
+  signal iec_data_ddr : std_logic;
 
+  -- Hardware-accelerated IEC interface
+  signal iec_hwa_reset_n : std_logic;
+  signal iec_hwa_atn_en_n : std_logic;
+  signal iec_hwa_clk_en_n : std_logic;
+  signal iec_hwa_data_en_n : std_logic;
+  signal iec_hwa_srq_en_n : std_logic;
+
+  -- C65 UART serial port output and direction
+  -- (used for C128 fast serial protocol on C65)
+  signal spout : std_logic;
+  signal spddr : std_logic;
+  
   signal suppress_key_glitches : std_logic;
   signal suppress_key_retrigger : std_logic;
   signal ascii_key_event_count : unsigned(15 downto 0) := x"0000";
 
   signal cia1_irq : std_logic;
-  signal ethernet_irq : std_logic;
+  signal ethernet_irq : std_logic := '1';
   signal uart_irq : std_logic;
+  signal iec_irq : std_logic;
 
   signal audio_mix_reg : unsigned(7 downto 0) := x"FF";
   signal audio_mix_write : std_logic := '0';
@@ -606,7 +619,7 @@ architecture behavioral of iomapper is
   signal pcm_left : signed(15 downto 0) := x"FFFF";
   signal pcm_right : signed(15 downto 0) := x"FFFF";
 
-  signal cpu_ethernet_stream : std_logic;
+  signal cpu_ethernet_stream : std_logic := '0';
 
   signal touch_key1_driver : unsigned(7 downto 0);
   signal touch_key2_driver : unsigned(7 downto 0);
@@ -689,7 +702,7 @@ begin
 
 
   -- IRQ line is wire-anded together as if it had a pullup.
-  irq <= cia1_irq and ethernet_irq and uart_irq;
+  irq <= cia1_irq and ethernet_irq and uart_irq and iec_irq;
 
   block2: block
   begin
@@ -746,10 +759,11 @@ begin
   -- want the 1541 and it's 6502 CPU placed if we are not
   -- building the mega65r2 target.
   -- WARNING/TODO: drive1541 will be undefined. This does
-  -- currently not porduce any problems, as it is not yet used
+  -- currently not produce any problems, as it is not yet used
   -- anywhere in the design! But it might if this changes...
   drive1541_mega65r3:
-  if false generate
+    -- if (target = mega65r3) or (target = mega65r4) or (target = mega65r5) or (target = mega65r6) generate
+    if false generate
     drive1541: entity work.internal1541
       port map (
         clock => cpuclock,
@@ -806,11 +820,43 @@ begin
     portaddr => cia1porta_ddr,
     portbddr => cia1portb_ddr,
     flagin => '1',
-    spin => '1',
+
+    spin => iec_srq_external,
+    spout => spout,
+    sp_ddr => spddr,
+    
     countin => '1'
     );
   end block;
 
+  iec0: if target = mega65r6 or target = mega65r5 or target = mega65r4 or target = mega65r3 generate
+    iecserial0: entity work.iec_serial
+      generic map ( cpu_frequency => cpu_frequency,
+                    with_debug => true)
+      port map (
+        reset_in => reset,
+        clock => cpuclock,
+        clock81 => pixelclk,
+        irq => iec_irq,
+        
+        fastio_addr => unsigned(address),
+        fastio_write => w,
+        fastio_read => r,
+        std_logic_vector(fastio_rdata) => data_o,
+        fastio_wdata => unsigned(data_i),
+        
+        iec_reset_n => iec_hwa_reset_n,
+        iec_atn_en_n => iec_hwa_atn_en_n,
+        iec_clk_en_n => iec_hwa_clk_en_n,
+        iec_data_en_n => iec_hwa_data_en_n,
+        iec_srq_en_n => iec_hwa_srq_en_n,
+        iec_clk_i => iec_clk_external,
+        iec_data_i => iec_data_external,
+        iec_srq_i => iec_srq_external 
+        
+        );
+  end generate;
+    
   block4: block
   begin
     ciatwo: entity work.cia6526
@@ -846,8 +892,8 @@ begin
     portaout(5) => iec_data_fromcia,
     portaout(7 downto 6) => dummy(4 downto 3),
     portaddr(3 downto 2) => dummy(8 downto 7),
-    portaddr(4) => iec_clk_en,
-    portaddr(5) => iec_data_en,
+    portaddr(4) => iec_clk_ddr,
+    portaddr(5) => iec_data_ddr,
     portaddr(7 downto 6) => dummy(10 downto 9),
     portaddr(1 downto 0) => dd00_bits_ddr,
 
@@ -859,10 +905,8 @@ begin
     portbin => userport_in,
     portbout => userport_out,
     flagin => '1',
-    spin => iec_srq_external,
-    spout => iec_srq_o,
-    sp_ddr => iec_srq_en,
-    countin => '1'
+    countin => '1',
+    spin => '1'
     );
   end block;
 
@@ -1066,6 +1110,7 @@ begin
 
     porta_pins => porta_pins,
     portb_pins => portb_pins,
+    portb_charge_pins => portb_charge_pins,
 
     speed_gate => speed_gate,
     speed_gate_enable => speed_gate_enable,
@@ -1239,7 +1284,7 @@ begin
     end generate;
 
 
-  eth0: if target /= megaphoner4 and target /= qmtecha100t and target /= qmtecha200t and target /= qmtechk325t generate
+  eth0: if target /= megaphoner4 and target /= qmtecha100t and target /= qmtecha200t and target /= qmtechk325t and target /= wukong generate
     ethernet0 : entity work.ethernet
       generic map (
         num_buffers => num_eth_rx_buffers
@@ -1746,7 +1791,7 @@ begin
   process(reset)
   begin
     reset_high <= not reset;
-    iec_reset <= reset;
+    iec_reset_en_n <= reset and iec_hwa_reset_n;
   end process;
 
   -- Allow taking over of SD interface for bitbashing and debugging
@@ -1971,12 +2016,26 @@ begin
           & std_logic'image(iec_atn_fromcia)
           & " to iec_atn_reflect.";
       end if;
-      iec_clk_reflect <= iec_clk_fromcia;
-      iec_data_reflect <= iec_data_fromcia;
-      iec_atn_reflect <= iec_atn_fromcia;
-      iec_clk_o <= iec_clk_fromcia;
-      iec_data_o <= iec_data_fromcia;
-      iec_atn_o <= iec_atn_fromcia;
+      if iec_hwa_clk_en_n='0' or (iec_clk_ddr='1' and iec_clk_fromcia='1') then
+        iec_clk_en_n <= '0'; iec_clk_reflect <= '1';
+      else
+        iec_clk_en_n <= '1'; iec_clk_reflect <= '0';
+      end if;
+      if iec_hwa_data_en_n='0' or (iec_data_ddr='1' and iec_data_fromcia='1') then
+        iec_data_en_n <= '0'; iec_data_reflect <= '1';
+      else
+        iec_data_en_n <= '1'; iec_data_reflect <= '0';
+      end if;
+      if iec_hwa_srq_en_n='0' or (spout='0' and spddr='1') then
+        iec_srq_en_n <= '0';
+      else
+        iec_srq_en_n <= '1';
+      end if;
+      if iec_atn_fromcia='1' or iec_hwa_atn_en_n='0' then
+        iec_atn_en_n <= '0'; iec_atn_reflect <= '1';
+      else
+        iec_atn_en_n <= '1'; iec_atn_reflect <= '0';
+      end if;
 
       seg_led(12) <= eth_scancode_toggle;
       seg_led(11) <= last_scan_code(12);

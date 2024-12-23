@@ -12,6 +12,9 @@ pipeline {
         stage('Setup toolchain') {
             steps {
                 sh 'echo -n "LOCAL CC65 VERSION: " && cc65 --version'
+                script {
+                    currentBuild.description = "Commit: ${GIT_COMMIT_SHORT}\r\n${GIT_COMMITTER}"
+                }
                 sh 'release-build/prepare.sh prunepkg'
             }
         }
@@ -103,5 +106,13 @@ pipeline {
         BRANCH_SHORT = sh (returnStdout: true, script: 'echo $BRANCH_NAME | sed -r \'s/^(.{5}).*$/\1/\'').trim()
         USE_LOCAL_CC65 = "1"
         VIVADO = "/opt/Xilinx/vivado_wrapper.sh"
+        GIT_COMMIT_SHORT = sh(
+            script: "printf \$(git rev-parse --short ${GIT_COMMIT})",
+            returnStdout: true
+        ).trim()
+        GIT_COMMITTER = sh(
+            script: "git --no-pager show -s --format='%an <%ae>' ${GIT_COMMIT}",
+            returnStdout: true
+        ).trim()
     }
 }

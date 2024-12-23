@@ -192,6 +192,7 @@ entity machine is
          -------------------------------------------------------------------------
          porta_pins : inout  std_logic_vector(7 downto 0) := (others => 'Z');
          portb_pins : in  std_logic_vector(7 downto 0);
+         portb_charge_pins : out std_logic;
          keyleft : in std_logic;
          keyup : in std_logic;
          keyboard_column8 : out std_logic := '1';
@@ -245,14 +246,11 @@ entity machine is
          ----------------------------------------------------------------------
          -- CBM floppy serial port
          ----------------------------------------------------------------------
-         iec_clk_en : out std_logic := '1';
-         iec_data_en : out std_logic := '1';
-         iec_srq_en : out std_logic := '1';
-         iec_data_o : out std_logic := '1';
-         iec_reset : out std_logic := '1';
-         iec_clk_o : out std_logic := '1';
-         iec_atn_o : out std_logic := '1';
-         iec_srq_o : out std_logic := '1';
+         iec_clk_en_n : out std_logic;
+         iec_data_en_n : out std_logic;
+         iec_srq_en_n : out std_logic;
+         iec_atn_en_n : out std_logic;
+         iec_reset_en_n : out std_logic;
          iec_srq_external : in std_logic;
          iec_data_external : in std_logic;
          iec_clk_external : in std_logic;
@@ -512,9 +510,9 @@ architecture Behavioral of machine is
   signal dipsw_read : std_logic_vector(7 downto 0);
   signal dipsw_int : std_logic_vector(7 downto 0);
 
-  signal hw_errata_level : unsigned(7 downto 0);
-  signal hw_errata_enable_toggle : std_logic;
-  signal hw_errata_disable_toggle : std_logic;
+  signal hw_errata_level : unsigned(7 downto 0) := x"00";
+  signal hw_errata_enable_toggle : std_logic := '0';
+  signal hw_errata_disable_toggle : std_logic := '0';
 
   signal pmodb_in_buffer : std_logic_vector(5 downto 0);
   signal pmodb_out_buffer : std_logic_vector(1 downto 0);
@@ -1781,18 +1779,16 @@ begin
       f_rdata_loopback => f_rdata_loopback,
 
       ----------------------------------------------------------------------
-      -- CBM floppy  std_logic_vectorerial port
+      -- CBM floppy  serial port
       ----------------------------------------------------------------------
-      iec_clk_en => iec_clk_en,
-      iec_srq_en => iec_srq_en,
-      iec_data_en => iec_data_en,
-      iec_data_o => iec_data_o,
-      iec_reset => iec_reset,
-      iec_clk_o => iec_clk_o,
-      iec_atn_o => iec_atn_o,
-      iec_srq_o => iec_srq_o,
+      iec_clk_en_n => iec_clk_en_n,
+      iec_srq_en_n => iec_srq_en_n,
+      iec_data_en_n => iec_data_en_n,
+      iec_atn_en_n => iec_atn_en_n,
+      iec_reset_en_n => iec_reset_en_n,
       iec_data_external => iec_data_external,
       iec_clk_external => iec_clk_external,
+      iec_srq_external => iec_srq_external,
 
       porta_pins => porta_pins,
       portb_pins => portb_pins,

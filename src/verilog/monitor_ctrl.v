@@ -349,11 +349,13 @@ begin
   end else if(monitor_watch_match && monitor_watch_en)
   begin
       mem_trace_reg[0] <= 1;    // Auto set trace mode on watch address match
+      mem_trace_reg[4] <= 1;    // Auto set disabling of interrupts
       monitor_watch_matched <= 1;    // Also set watch matched bit
   end
   else if(monitor_break_addr == monitor_pc && monitor_break_en)
   begin
       mem_trace_reg[0] <= 1;    // Auto set trace mode on break address match
+      mem_trace_reg[4] <= 1;    // Auto set disabling of interrupts
      // And alert of breakpoint match if we were not already tracing
      if (mem_trace_reg[0] == 0)
        begin
@@ -363,6 +365,7 @@ begin
   else if(((monitor_p & flag_break_mask[15:8]) || (~monitor_p & flag_break_mask[7:0])) && monitor_flag_en)
   begin
       mem_trace_reg[0] <= 1;
+      mem_trace_reg[4] <= 1;    // Auto set disabling of interrupts
       monitor_flag_matched <= 1;    // Also set flag matched bit
   end
   else if(history_write == 1)

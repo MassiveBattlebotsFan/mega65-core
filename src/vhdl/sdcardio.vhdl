@@ -69,7 +69,7 @@ entity sdcardio is
     floppy_last_gap : out unsigned(7 downto 0) := x"00";
     floppy_gap_strobe : out std_logic := '0';
 
-    hw_errata_level : out unsigned(7 downto 0) := x"00";
+    hw_errata_level : inout unsigned(7 downto 0);
     hw_errata_disable_toggle : in std_logic;
     hw_errata_enable_toggle : in std_logic;
 
@@ -678,11 +678,6 @@ architecture behavioural of sdcardio is
   signal fw_no_data : std_logic := '0';
   signal f_index_history : std_logic_vector(7 downto 0) := (others => '1');
   signal last_f_index : std_logic := '0';
-  signal last_f_rdata : std_logic := '0';
-  signal disk_definitely_present : std_logic := '0';
-  signal disk_missing_timeout : integer := 0;
-  signal floppy_motor_running : std_logic := '0';
-  
   signal f_index_rising_edge : std_logic := '0';
   signal step_countdown : integer range 0 to 511 := 0;
 
@@ -719,7 +714,7 @@ architecture behavioural of sdcardio is
   signal crc_force_delay_counter : integer range 0 to 12 := 0;
   signal crc_force_delay : std_logic := '0';
 
-  signal hw_errata_level_int : unsigned(7 downto 0) := x"00";
+  constant hw_errata_level_max : unsigned(7 downto 0) := x"02";
   signal hw_errata_enable_toggle_last : std_logic := '0';
   signal hw_errata_disable_toggle_last : std_logic := '0';
 
@@ -1257,8 +1252,20 @@ begin  -- behavioural
           when "01010" => -- $D08A
             -- P CODE  |  P7   |  P6   |  P5   |  P4   |  P3   |  P2   |  P1   |  P0   | A R
             fastio_rdata <= f011_reg_pcode;
-          when "01111" => -- @IO:GS $D08F - Set/get MISCIO:HWERRATA MEGA65 hardware errata level
-            fastio_rdata <= hw_errata_level_int;
+          when "01111" =>
+            -- @IO:GS $D08F MISCIO:HWERRATA Set/get MEGA65 hardware errata level
+            --
+            -- Register $D07A.5 VIC-IV:NOBUGCOMPAT will set this to 0 or hw_errata_level_max!
+            -- There is no feedback from this register back to NOBUGCOMPAT!
+            --
+            -- TODO: please document new errata levels here, and please **also** add HWERRATA:LEVEL where you use it!
+            -- TODO: if adding a new level, remember to raise hw_errata_level_max constant!
+            --
+            -- HWERRATA Table:
+            -- HWERRATA:1 - VIC-IV XSCL position shifted in H640 mode.
+            -- HWERRATA:2 - VIC-IV Character attribute combinations.
+            --
+            fastio_rdata <= hw_errata_level;
           when "11011" => -- @IO:GS $D09B - FSM state of low-level SD controller (DEBUG)
             fastio_rdata <= last_sd_state;
           when "11100" => -- @IO:GS $D09C - Last byte low-level SD controller read from card (DEBUG)
@@ -1289,8 +1296,8 @@ begin  -- behavioural
         -- microSD controller registers
 --        report "reading SDCARD register $" & to_hstring(fastio_addr(7 downto 0)) severity note;
         case fastio_addr(7 downto 0) is
-          -- @IO:GS $D680.0 - SD controller BUSY flag
-          -- @IO:GS $D680.1 - SD controller BUSY flag
+          -- @IO:GS $D680.0 - SD controller SDIO BUSY flag
+          -- @IO:GS $D680.1 - SD controller SDCARD BUSY flag
           -- @IO:GS $D680.2 - SD controller RESET flag
           -- @IO:GS $D680.3 - SD controller sector buffer mapped flag
           -- @IO:GS $D680.4 - SD controller SDHC mode flag
@@ -1764,55 +1771,14 @@ begin  -- behavioural
 
     if rising_edge(clock) then
 
-      -- We can only detect the absence of a floppy drive when the motor is spinning.
-      -- So if the motor is not spinning, then assume a disk is present
-      if f_index /= last_f_index or f_rdata /= last_f_rdata or floppy_motor_running='0' then
-        disk_definitely_present <= '1';
-        disk_missing_timeout <= 10_000_000;
-      else
-        if disk_missing_timeout /= 0 then
-          disk_missing_timeout <= disk_missing_timeout - 1;
-        else
-          disk_definitely_present <= '0';
-        end if;
-      end if;
-      last_f_rdata <= f_rdata;
-      -- Maintain de-bounced index hole sensor reading
-      f_index_history(6 downto 0) <= f_index_history(7 downto 1);
-      f_index_history(7) <= f_index;
-      f_index_rising_edge <= '0';
-      if f_index_history = x"00" then
-        last_f_index <= '0';
-      else
-        last_f_index <= '1';
-        if last_f_index='0' then
-          f_index_rising_edge <= '1';
-        end if;
-      end if;
-
-
-      
+      -- backwards compability to $D07A.5 VIC-IV:NOBUGCOMPAT
       if hw_errata_enable_toggle /= hw_errata_enable_toggle_last then
         hw_errata_enable_toggle_last <= hw_errata_enable_toggle;
-        hw_errata_level_int <= x"ff";
-        hw_errata_level <= x"ff";
+        hw_errata_level <= hw_errata_level_max;
       end if;
 
       if hw_errata_disable_toggle /= hw_errata_disable_toggle_last then
         hw_errata_disable_toggle_last <= hw_errata_disable_toggle;
-        hw_errata_level_int <= x"00";
-        hw_errata_level <= x"00";
-      end if;
-
-      if hw_errata_enable_toggle /= hw_errata_enable_toggle_last then
-        hw_errata_enable_toggle_last <= hw_errata_enable_toggle;
-        hw_errata_level_int <= x"ff";
-        hw_errata_level <= x"ff";
-      end if;
-      
-      if hw_errata_disable_toggle /= hw_errata_disable_toggle_last then
-        hw_errata_disable_toggle_last <= hw_errata_disable_toggle;
-        hw_errata_level_int <= x"00";
         hw_errata_level <= x"00";
       end if;
 
@@ -1948,7 +1914,6 @@ begin  -- behavioural
         -- Return to DD data rate on reset
         cycles_per_interval <= x"51";
         -- Also re-enable C65 bug compatibility
-        hw_errata_level_int <= x"00";
         hw_errata_level <= x"00";
       end if;
 
@@ -1961,6 +1926,19 @@ begin  -- behavioural
         fdc_writing_cooldown <= fdc_writing_cooldown - 1;
       else
         fdc_writing <= '0';
+      end if;
+
+      -- Maintain de-bounced index hole sensor reading
+      f_index_history(6 downto 0) <= f_index_history(7 downto 1);
+      f_index_history(7) <= f_index;
+      f_index_rising_edge <= '0';
+      if f_index_history = x"00" then
+        last_f_index <= '0';
+      else
+        last_f_index <= '1';
+        if last_f_index='0' then
+          f_index_rising_edge <= '1';
+        end if;
       end if;
 
       fw_byte_valid <= '0';
@@ -2191,22 +2169,14 @@ begin  -- behavioural
       if use_real_floppy0='1' and virtualise_f011_drive0='0' and f011_ds = "000" then
         -- PC drives use a combined RDY and DISKCHANGE signal.
         -- You can only clear the DISKCHANGE and re-assert RDY
-        -- by stepping the disk (thus the ticking of the drive)
-        -- We work around this by detecting if a disk is missing when
-        -- the motor is running by checking for no activity on F_RDATA
-        -- and F_INDEX for ~0.25 seconds        
-        f011_disk_present <= disk_definitely_present;
-        f011_disk1_present <= disk_definitely_present;
+        -- by stepping the disk (thus the ticking of
+        f011_disk_present <= '1';
         f011_write_protected <= not f_writeprotect;
       elsif use_real_floppy2='1' and virtualise_f011_drive1='0' and f011_ds = "001" then
         -- PC drives use a combined RDY and DISKCHANGE signal.
         -- You can only clear the DISKCHANGE and re-assert RDY
-        -- by stepping the disk (thus the ticking of the drive)
-        -- We work around this by detecting if a disk is missing when
-        -- the motor is running by checking for no activity on F_RDATA
-        -- and F_INDEX for ~0.25 seconds        
-        f011_disk_present <= disk_definitely_present;
-        f011_disk2_present <= disk_definitely_present;
+        -- by stepping the disk (thus the ticking of
+        f011_disk_present <= '1';
         f011_write_protected <= not f_writeprotect;
       elsif f011_ds="000" then
         f011_write_protected <= f011_disk1_write_protected;
@@ -2439,11 +2409,6 @@ begin  -- behavioural
               end if;
               f011_motor <= fastio_wdata(5);
               motor <= fastio_wdata(5);
-              -- When turning the motor on, restart the disk detection process
-              if fastio_wdata(5)='1' then
-                disk_definitely_present <= '1';
-                disk_missing_timeout <= 10_000_000;
-              end if;
 
               if f011_ds /= fastio_wdata(2 downto 0) then
                 -- When switching drive, clear write gate
@@ -2451,27 +2416,22 @@ begin  -- behavioural
               end if;
 
               f_motora <= '1'; f_selecta <= '1'; f_motorb <= '1'; f_selectb <= '1';
-              floppy_motor_running <= '0';
               if fastio_wdata(2 downto 1) = "00" then
                 if (fastio_wdata(0) xor f011_swap_drives) = '0' then
                   if use_real_floppy0='1' or silent_sdcard='0' then
                     f_motora <= not fastio_wdata(5); -- start motor on real drive
                     f_selecta <= not fastio_wdata(5);
-                    floppy_motor_running <= fastio_wdata(5);
                   else
                     f_motora <= '1';
                     f_selecta <= '1';
-                    floppy_motor_running <= '0';
                   end if;
                 else
                   if use_real_floppy2='1' or silent_sdcard='0' then
                     f_motorb <= not fastio_wdata(5); -- start motor on real drive
                     f_selectb <= not fastio_wdata(5);
-                    floppy_motor_running <= fastio_wdata(5);
                   else
                     f_motorb <= '1';
                     f_selectb <= '1';
-                    floppy_motor_running <= '0';
                   end if;
                 end if;
               end if;
@@ -2906,8 +2866,11 @@ begin  -- behavioural
               -- @IO:C65 $D08A FDC:PCODE (Read only) returns the protection code of the most recently read sector. Was intended for rudimentary copy protection. Not implemented.
               null;
             when "01111" =>
-              hw_errata_level <= fastio_wdata;
-              hw_errata_level_int <= fastio_wdata;
+              if fastio_wdata >= hw_errata_level_max then
+                hw_errata_level <= hw_errata_level_max;
+              else
+                hw_errata_level <= fastio_wdata;
+              end if;
             when others => null;
 
           end case;
@@ -3134,20 +3097,22 @@ begin  -- behavioural
                   write_sector_gate_timeout <= 40000; -- about 1ms
                 when x"50" => -- P - Write 256 bytes to QSPI flash in 1-bit mode
                   if hypervisor_mode='1' or dipsw(2)='1' then
-                    sd_state <= qspi_write_256;
                     sdio_error <= '0';
                     sdio_fsm_error <= '0';
-                    sdio_busy <= '1';
+                    -- busy is set in state
+                    -- sdio_busy <= '1';
+                    sd_state <= qspi_write_256;
                   else
                     -- Permission denied
                     sdio_error <= '1';
                   end if;
                 when x"51" => -- Q - Write 512 bytes to QSPI flash in 1-bit mode
                   if hypervisor_mode='1' or dipsw(2)='1' then
-                    sd_state <= qspi_write_512;
                     sdio_error <= '0';
                     sdio_fsm_error <= '0';
-                    sdio_busy <= '1';
+                    -- busy is set in state
+                    -- sdio_busy <= '1';
+                    sd_state <= qspi_write_512;
                   else
                     -- Permission denied
                     sdio_error <= '1';
@@ -3157,7 +3122,8 @@ begin  -- behavioural
                   if hypervisor_mode='1' or dipsw(2)='1' then
                     sdio_error <= '0';
                     sdio_fsm_error <= '0';
-                    sdio_busy <= '1';
+                    -- busy is set in state
+                    -- sdio_busy <= '1';
                     sd_state <= qspi_read_512;
                   else
                     -- Permission denied
@@ -3171,13 +3137,15 @@ begin  -- behavioural
                   report "QSPI: Dispatching command";
                   sdio_error <= '0';
                   sdio_fsm_error <= '0';
-                  sdio_busy <= '1';
+                  -- busy is set in state
+                  -- sdio_busy <= '1';
                   sd_state <= qspi_send_command;
                   spi_address <= sd_sector;
                   qspi_read_sector_phase <= 0;
                   qspi_action_state <= qspi_read_512;
                   qspi_verify_mode <= '0';
                   spi_flash_cmd_byte <= x"6c";
+                  spi_no_dummy_cycles <= '0';
                 when x"54" =>
                   -- T - Write a 512 byte region to QSPI flash, handling
                   -- all aspects of the transaction.  Sector address is taken
@@ -3185,7 +3153,8 @@ begin  -- behavioural
                   if hypervisor_mode='1' or dipsw(2)='1' then
                     sdio_error <= '0';
                     sdio_fsm_error <= '0';
-                    sdio_busy <= '1';
+                    -- busy is set in state
+                    -- sdio_busy <= '1';
                     sd_state <= qspi_send_command;
                     spi_address <= sd_sector;
                     qspi_read_sector_phase <= 0;
@@ -3207,7 +3176,8 @@ begin  -- behavioural
                   if hypervisor_mode='1' or dipsw(2)='1' then
                     sdio_error <= '0';
                     sdio_fsm_error <= '0';
-                    sdio_busy <= '1';
+                    -- busy is set in state
+                    -- sdio_busy <= '1';
                     sd_state <= qspi_send_command;
                     spi_address <= sd_sector;
                     qspi_read_sector_phase <= 0;
@@ -3230,7 +3200,8 @@ begin  -- behavioural
                   report "QSPI: Dispatching verify command";
                   sdio_error <= '0';
                   sdio_fsm_error <= '0';
-                  sdio_busy <= '1';
+                  -- busy is set in state
+                  -- sdio_busy <= '1';
                   sd_state <= qspi_send_command;
                   spi_address <= sd_sector;
                   qspi_read_sector_phase <= 0;
@@ -3244,7 +3215,8 @@ begin  -- behavioural
                   if hypervisor_mode='1' or dipsw(2)='1' then
                     sdio_error <= '0';
                     sdio_fsm_error <= '0';
-                    sdio_busy <= '1';
+                    -- busy is set in state
+                    -- sdio_busy <= '1';
                     sd_state <= qspi_send_command;
                     spi_address <= sd_sector;
                     qspi_read_sector_phase <= 0;
@@ -3261,7 +3233,8 @@ begin  -- behavioural
                   if hypervisor_mode='1' or dipsw(2)='1' then
                     sdio_error <= '0';
                     sdio_fsm_error <= '0';
-                    sdio_busy <= '1';
+                    -- busy is set in state
+                    -- sdio_busy <= '1';
                     sd_state <= qspi_send_command;
                     spi_address <= sd_sector;
                     qspi_read_sector_phase <= 0;
@@ -3284,7 +3257,8 @@ begin  -- behavioural
                   if hypervisor_mode='1' or dipsw(2)='1' then
                     sdio_error <= '0';
                     sdio_fsm_error <= '0';
-                    sdio_busy <= '1';
+                    -- busy is set in state
+                    -- sdio_busy <= '1';
                     sd_state <= qspi_send_command;
                     qspi_read_sector_phase <= 0;
                     qspi_action_state <= QSPI_Release_CS;
@@ -3306,7 +3280,8 @@ begin  -- behavioural
                   if hypervisor_mode='1' or dipsw(2)='1' then
                     sdio_error <= '0';
                     sdio_fsm_error <= '0';
-                    sdio_busy <= '1';
+                    -- busy is set in state
+                    -- sdio_busy <= '1';
                     sd_state <= qspi_send_command;
                     spi_address <= sd_sector;
                     qspi_read_sector_phase <= 0;
@@ -3323,8 +3298,9 @@ begin  -- behavioural
                   -- SPI Clear status register. Allowed from user land
                   sdio_error <= '0';
                   sdio_fsm_error <= '0';
-                  sdio_busy <= '1';
-                  sd_state <= qspi_send_command;
+                  -- busy is set in state
+                  -- sdio_busy <= '1';
+                sd_state <= qspi_send_command;
                   qspi_read_sector_phase <= 0;
                   qspi_action_state <= QSPI_Release_CS;
                   spi_flash_cmd_byte <= x"30";
@@ -3337,7 +3313,8 @@ begin  -- behavioural
                   report "QSPI: Dispatching command";
                   sdio_error <= '0';
                   sdio_fsm_error <= '0';
-                  sdio_busy <= '1';
+                  -- busy is set in state
+                  -- sdio_busy <= '1';
                   sd_state <= qspi_send_command;
                   spi_address <= x"00000000";
                   qspi_read_sector_phase <= 0;
@@ -3352,7 +3329,8 @@ begin  -- behavioural
                   if hypervisor_mode='1' or dipsw(2)='1' then
                     sdio_error <= '0';
                     sdio_fsm_error <= '0';
-                    sdio_busy <= '1';
+                    -- busy is set in state
+                    -- sdio_busy <= '1';
                     sd_state <= qspi_send_command;
                     spi_address <= sd_sector;
                     qspi_read_sector_phase <= 0;
@@ -3428,8 +3406,8 @@ begin  -- behavioural
               -- ==================================================================
 
             when x"8a" =>
-              -- @IO:GS $D68A.7 SDFDC:D1D64 F011 drive 1 disk image is D64 image if set (otherwise 800KiB 1581 or D65 image)
-              -- @IO:GS $D68A.6 SDFDC:D0D64 F011 drive 0 disk image is D64 mega image if set (otherwise 800KiB 1581 or D65 image)
+              -- @IO:GS $D68A.7 SDFDC:D1D64 F011 drive 1 disk image is D64 if set, otherwise D81 (also see SDFDC:D1MD)
+              -- @IO:GS $D68A.6 SDFDC:D0D64 F011 drive 0 disk image is D64 if set, otherwise D81 (also see SDFDC:D0MD)
               if hypervisor_mode='1' then
                 f011_d64_disk <= fastio_wdata(6);
                 f011_d64_disk2 <= fastio_wdata(7);
@@ -3448,8 +3426,8 @@ begin  -- behavioural
                 f011_disk1_present <= fastio_wdata(1);
                 f011_disk2_present <= fastio_wdata(4);
               end if;
-              -- @IO:GS $D68B.7 SDFDC:D1MD F011 drive 1 disk image is D65 image if set (otherwise 800KiB 1581 image)
-              -- @IO:GS $D68B.6 SDFDC:D0MD F011 drive 0 disk image is D65 image if set (otherwise 800KiB 1581 image)
+              -- @IO:GS $D68B.7 SDFDC:D1MD F011 drive 1 disk image is D65 if set, otherwise D81 (also see SDFDC:D1D64)
+              -- @IO:GS $D68B.6 SDFDC:D0MD F011 drive 0 disk image is D65 if set, otherwise D81 (also see SDFDC:D0D64)
               -- @IO:GS $D68B.5 SDFDC:D1WP Write enable F011 drive 1
               -- @IO:GS $D68B.4 SDFDC:D1P F011 drive 1 media present
               -- @IO:GS $D68B.3 SDFDC:D1IMG F011 drive 1 use disk image if set, otherwise use real floppy drive.
@@ -3522,12 +3500,10 @@ begin  -- behavioural
 
               f_motora <= '1'; f_motorb <= '1';
               f_selecta <= '1'; f_selectb <= '1';
-              floppy_motor_running <= '0';
               if f011_ds(2 downto 1) = "00" then
                 if (f011_ds(0) xor f011_swap_drives) = '0' then
                   f_selecta <= fastio_wdata(5);
                   f_motora <= fastio_wdata(6);
-                  floppy_motor_running <= fastio_wdata(6);
                 else
                   f_selectb <= fastio_wdata(5);
                   f_motorb <= fastio_wdata(6);
@@ -3856,6 +3832,7 @@ begin  -- behavioural
           if qspi_release_cs_on_completion='1' then
             qspi_release_cs_on_completion <= '0';
             qspicsn <= '1';
+            qspi_csn_int <= '1';
           end if;
 
           if sectorbuffercs='1' and fastio_write='1' then
@@ -4392,14 +4369,7 @@ begin  -- behavioural
             sd_state <= F011WriteSectorRealDrive;
           end if;
 
-          if f011_disk_present = '0' then
-            f011_rnf <= '1';
-            fdc_read_request <= '0';
-            fdc_bytes_read(4) <= '1';
-            f011_busy <= '0';
-            sd_state <= Idle;
-            fdc_sector_operation <= '0';
-          elsif fdc_rotation_timeout_reserve_counter /= 0 then
+          if fdc_rotation_timeout_reserve_counter /= 0 then
             fdc_rotation_timeout_reserve_counter <= fdc_rotation_timeout_reserve_counter - 1;
           else
             -- Out of time: fail job
@@ -4512,14 +4482,7 @@ begin  -- behavioural
           if fdc_read_request='1' then
             -- We have an FDC request in progress.
 
-            if f011_disk_present = '0' then
-              f011_rnf <= '1';
-              fdc_read_request <= '0';
-              fdc_bytes_read(4) <= '1';
-              f011_busy <= '0';
-              sd_state <= Idle;
-              fdc_sector_operation <= '0';
-            elsif fdc_rotation_timeout_reserve_counter /= 0 then
+            if fdc_rotation_timeout_reserve_counter /= 0 then
               fdc_rotation_timeout_reserve_counter <= fdc_rotation_timeout_reserve_counter - 1;
             else
               -- Out of time: fail job
@@ -4760,6 +4723,7 @@ begin  -- behavioural
         when QSPI_send_command =>
           report "QSPI: send command phase" & integer'image(qspi_read_sector_phase)
             & ", cmd_only=" & std_logic'image(spi_flash_cmd_only);
+          sdio_busy <= '1';
           if qspi_read_sector_phase < 3 or (qspi_read_sector_phase mod 2 = 0) then
             qspi_clock_int <= '1';
           else
@@ -4827,9 +4791,9 @@ begin  -- behavioural
           end case;
           case qspi_read_sector_phase is
                             -- Release CS to ensure new transaction
-            when 0 | 1   => qspicsn <= '1';
+            when 0 | 1   => qspicsn <= '1'; qspi_csn_int <= '1';
                             -- Bring chip to attention
-            when 2       => qspicsn <= '0';
+            when 2       => qspicsn <= '0'; qspi_csn_int <= '0';
                             -- Send QSPI command
             when 3 | 4   => qspidb_oe <= '1'; qspidb_tristate <= '0';
                             qspidb(3 downto 1) <= "111";
@@ -4840,10 +4804,12 @@ begin  -- behavioural
         when QSPI_Release_CS =>
           qspi_clock_int <= '0';
           qspicsn <= '1';
+          qspi_csn_int <= '1';
           sd_state <= Idle;
         when SPI_read_512 =>
-          -- Tristate SI and SO
           report "QSPI: in SPI_read_512";
+          sdio_busy <= '1';
+          -- Tristate SI and SO
           qspidb_tristate <= '1';
           qspidb_oe <= '0';
           sd_buffer_offset <= to_unsigned(0,9);
@@ -4852,6 +4818,8 @@ begin  -- behavioural
           -- (used for speeding up erasure checking of flash)
           qspi_bytes_differ <= '0';
         when QSPI_read_512 =>
+          report "QSPI: in QSPI_read_512";
+          sdio_busy <= '1';
           -- Tristate SI and SO
           qspidb_tristate <= '1';
           qspidb_oe <= '0';
@@ -4907,6 +4875,8 @@ begin  -- behavioural
           else
             sd_state <= Idle;
             sdio_busy <= '0';
+            qspicsn <= '1';
+            qspi_csn_int <= '1';
           end if;
           qspi_clock_int <= '1';
         when QSPI_qwrite_512 =>
@@ -5037,6 +5007,7 @@ begin  -- behavioural
               sd_state <= Idle;
               sdio_busy <= '0';
               qspicsn <= '1';
+              qspi_csn_int <= '1';
             end if;
           else
             qspi_bit_counter <= qspi_bit_counter + 1;

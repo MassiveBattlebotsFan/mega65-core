@@ -33,7 +33,9 @@ entity dpram8x4096 is
     web	 : in	std_logic_vector(NB_COL-1 downto 0);
     addrb : in	std_logic_vector(ADDR_WIDTH-1 downto 0);
     dinb	 : in	std_logic_vector(NB_COL*COL_WIDTH-1 downto 0);
-    doutb	 : out std_logic_vector(NB_COL*COL_WIDTH-1 downto 0)
+    doutb	 : out std_logic_vector(NB_COL*COL_WIDTH-1 downto 0);
+
+    silence_internal_drive : in std_logic := '0'
     );
   
 end dpram8x4096;
@@ -53,13 +55,13 @@ begin
       if ena = '1' then	
         for i in 0 to NB_COL-1 loop
           if wea(i) = '1' then
-            RAM(to_integer(unsigned(addra(11 downto 0))))((i+1)*COL_WIDTH-1 downto i*COL_WIDTH)	 := dina((i+1)*COL_WIDTH-1 downto i*COL_WIDTH);
+            RAM(to_integer(unsigned(addra((ADDR_WIDTH-1) downto 0))))((i+1)*COL_WIDTH-1 downto i*COL_WIDTH)	 := dina((i+1)*COL_WIDTH-1 downto i*COL_WIDTH);
           end if;			 
         end loop;
       end if;
     end if;
     if ena = '1' then	                  
-      douta <= RAM(to_integer(unsigned(addra(11 downto 0))));
+      douta <= RAM(to_integer(unsigned(addra((ADDR_WIDTH-1) downto 0))));
     else
       douta <= (others => 'Z');
     end if;
@@ -73,11 +75,13 @@ begin
       if enb = '1' then
         for i in 0 to NB_COL-1 loop
           if web(i) = '1' then
-            RAM(to_integer(unsigned(addrb(11 downto 0))))((i+1)*COL_WIDTH-1 downto i*COL_WIDTH)	 := dinb((i+1)*COL_WIDTH-1 downto i*COL_WIDTH);
-            report "1541RAM: Writing $" & to_hexstring(dinb) & " to address $" & to_hexstring(to_unsigned(to_integer(unsigned(addrb)),16));
+            RAM(to_integer(unsigned(addrb((ADDR_WIDTH-1) downto 0))))((i+1)*COL_WIDTH-1 downto i*COL_WIDTH)	 := dinb((i+1)*COL_WIDTH-1 downto i*COL_WIDTH);
+            if silence_internal_drive='0' then
+              report "1541RAM: Writing $" & to_hexstring(dinb) & " to address $" & to_hexstring(to_unsigned(to_integer(unsigned(addrb)),16));
+            end if;
           end if;
         end loop;
-        doutb <= RAM(to_integer(unsigned(addrb(11 downto 0))));
+        doutb <= RAM(to_integer(unsigned(addrb((ADDR_WIDTH-1) downto 0))));
       end if;
     end if;
   end process;
