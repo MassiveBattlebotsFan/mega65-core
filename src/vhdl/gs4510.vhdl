@@ -2320,6 +2320,7 @@ begin
           end if;
         end if;
 
+        -- @IO:GS $FF60000-$FF6FFFF SUMMARY:SIDDEBUG SID register loopback and filter table debug area
         if long_address(19 downto 16) = x"6" then
           wait_states <= sidtable_wait_states;
           if sidtable_wait_states /= x"00" then

@@ -698,6 +698,9 @@ begin
                                         --------------------------------------
               when others	=>	null;
             end case;
+
+            -- @IO:GS $D41D SID:PANLEFT SID left channel volume (requires $D63C.4 SuperSID set)
+            -- @IO:GS $D41E SID:PANRIGHT SID right channel volume (requires $D63C.4 SuperSID set)
             if supersid = '1' then
               case addr is
                 when "11101" => reg_pan_left <= di;

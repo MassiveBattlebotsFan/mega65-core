@@ -1,3 +1,7 @@
+-- MultiSID, combined I/O for all four SIDs and the filter coefficient table.
+-- Includes pre-mixer to allow for panning any of the four SIDs to either
+-- audio mixer channel.
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -284,6 +288,8 @@ begin  -- architecture rtl
   main: process (cpuclock, filt_data_o) is
   begin  -- process main
     if rising_edge(cpuclock) then
+      -- Need to buffer the filter data output or the bus gets clobbered
+      -- This requires 3 waitstates for filter table access
       if filter_cs = '1' then
         data_buf <= filt_data_o;
       else
