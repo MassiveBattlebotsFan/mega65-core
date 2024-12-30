@@ -112,7 +112,7 @@ end sid6581;
 
 architecture Behavioral of sid6581 is
   
-  signal reset_drive : std_logic;
+  -- signal reset_drive : std_logic;
   
   signal clk_1MHz_en : std_logic := '1';
 
@@ -237,7 +237,7 @@ begin
     port map(
       cpuclock => cpuclock,
       clk_1MHz				=> clk_1MHz,
-      reset					=> reset_drive,
+      reset					=> reset,
       Freq_lo				=> Voice_1_Freq_lo,
       Freq_hi				=> Voice_1_Freq_hi,
       Pw_lo					=> Voice_1_Pw_lo,
@@ -256,7 +256,7 @@ begin
     port map(
       cpuclock => cpuclock,
       clk_1MHz				=> clk_1MHz,
-      reset					=> reset_drive,
+      reset					=> reset,
       Freq_lo				=> Voice_2_Freq_lo,
       Freq_hi				=> Voice_2_Freq_hi,
       Pw_lo					=> Voice_2_Pw_lo,
@@ -275,7 +275,7 @@ begin
     port map(
       cpuclock => cpuclock,
       clk_1MHz				=> clk_1MHz,
-      reset					=> reset_drive,
+      reset					=> reset,
       Freq_lo				=> Voice_3_Freq_lo,
       Freq_hi				=> Voice_3_Freq_hi,
       Pw_lo					=> Voice_3_Pw_lo,
@@ -293,9 +293,9 @@ begin
   sid_voice_8580_1: entity work.sid_voice_8580
     port map(
       cpuclock => cpuclock,
-      clock                           => clk_1Mhz,
-      ce_1m				=> clk_1MHz_en,
-      reset					=> reset_drive,
+      clock                           => cpuclock,
+      ce_1m				=> clk_1MHz,
+      reset					=> reset,
       Freq_lo				=> Voice_1_Freq_lo,
       Freq_hi				=> Voice_1_Freq_hi,
       Pw_lo					=> Voice_1_Pw_lo,
@@ -319,9 +319,9 @@ begin
   sid_voice_8580_2: entity work.sid_voice_8580
     port map(
       cpuclock => cpuclock,
-      clock                           => clk_1Mhz,
-      ce_1m				=> clk_1MHz_en,
-      reset					=> reset_drive,
+      clock                           => cpuclock,
+      ce_1m				=> clk_1MHz,
+      reset					=> reset,
       Freq_lo				=> Voice_2_Freq_lo,
       Freq_hi				=> Voice_2_Freq_hi,
       Pw_lo					=> Voice_2_Pw_lo,
@@ -345,9 +345,9 @@ begin
   sid_voice_8580_3: entity work.sid_voice_8580
     port map(
       cpuclock => cpuclock,
-      clock                           => clk_1Mhz,
-      ce_1m				=> clk_1MHz_en,
-      reset					=> reset_drive,
+      clock                           => cpuclock,
+      ce_1m				=> clk_1MHz,
+      reset					=> reset,
       Freq_lo				=> Voice_3_Freq_lo,
       Freq_hi				=> Voice_3_Freq_hi,
       Pw_lo					=> Voice_3_Pw_lo,
@@ -444,9 +444,9 @@ begin
   end process;
   
   
-  process (cpuclock,reset_drive)
+  process (cpuclock,reset)
   begin
-    if reset_drive='1' then
+    if reset='1' then
       ff1<='0';
     else
       if rising_edge(cpuclock) then
@@ -461,7 +461,7 @@ begin
   process(cpuclock)
   begin
     if rising_edge(cpuclock) then
-      reset_drive <= reset;
+      -- reset <= reset;
       tick_q1 <= ff1;
       tick_q2 <= tick_q1;
       
@@ -504,7 +504,7 @@ begin
   filters: entity work.sid_filters 
     port map (
       clk			=> cpuclock,
-      rst			=> reset_drive,
+      rst			=> reset,
       mode                    => mode,
       -- SID registers.
       Fc_lo			=> Filter_Fc_lo,
@@ -536,7 +536,7 @@ begin
   register_decoder:process(cpuclock)
   begin
     if rising_edge(cpuclock) then
-      if (reset_drive = '1') then
+      if (reset = '1') then
         --------------------------------------- Voice-1
         Voice_1_Freq_lo	<= (others => '0');
         Voice_1_Freq_hi	<= (others => '0');

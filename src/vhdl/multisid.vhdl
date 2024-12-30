@@ -42,7 +42,8 @@ architecture rtl of multisid is
   signal mux_addr : unsigned(11 downto 0);
   signal filt_data_o : std_logic_vector(7 downto 0);
   signal data_buf : std_logic_vector(7 downto 0);
-
+  signal reset_buffer, reset_stage1 : std_logic := '1';
+  
   ----------------------------------------------------------------------------------------------------------------------
   -- Functions
   ----------------------------------------------------------------------------------------------------------------------
@@ -182,7 +183,7 @@ begin  -- architecture rtl
       port map (
         clk_1MHz => phi0_1mhz,
         cpuclock => cpuclock,
-        reset => reset_high,
+        reset => reset_buffer,
         cs => leftsid_cs,
         loopback => reg_loopback_cs,
         mode => sid_mode(0),
@@ -210,7 +211,7 @@ begin  -- architecture rtl
       port map (
         clk_1MHz => phi0_1mhz,
         cpuclock => cpuclock,
-        reset => reset_high,
+        reset => reset_buffer,
         cs => rightsid_cs,
         loopback => reg_loopback_cs,
         mode => sid_mode(1),
@@ -238,7 +239,7 @@ begin  -- architecture rtl
       port map (
         clk_1MHz => phi0_1mhz,
         cpuclock => cpuclock,
-        reset => reset_high,
+        reset => reset_buffer,
         cs => frontsid_cs,
         loopback => reg_loopback_cs,
         mode => sid_mode(2),
@@ -266,7 +267,7 @@ begin  -- architecture rtl
       port map (
         clk_1MHz => phi0_1mhz,
         cpuclock => cpuclock,
-        reset => reset_high,
+        reset => reset_buffer,
         cs => backsid_cs,
         loopback => reg_loopback_cs,
         mode => sid_mode(3),
@@ -315,6 +316,9 @@ begin  -- architecture rtl
         rightsid_panr,
         backsid_panr
         );
+      -- reset_stage1 <= reset_high;
+      -- reset_buffer <= reset_stage1;
+      reset_buffer <= reset_high;
     end if;
   end process main;
   data_o <= data_buf;
