@@ -62,7 +62,7 @@ module sid_voice_8580
    assign pulsewidth  = {pw_hi[3:0],pw_lo};
 
    // Digital Controlled Amplifier
-   always @(posedge clock) if(ce_1m) dca_out <= wave_out * envelope;
+   always @(posedge clock) dca_out <= wave_out * envelope;
 
    // Envelope Instantiation
    sid_envelope adsr
