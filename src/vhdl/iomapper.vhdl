@@ -2297,16 +2297,22 @@ begin
       -- @IO:C64 $D400-$D41F = SID#1 (internally known as 'right SID #1' or as 'rightsid')
       -- @IO:C64 $D420-$D43F = SID#2 (internally known as 'right SID #2' or as 'backsid')
       -- @IO:C64 $D440-$D45F = SID#3 (internally known as 'left SID #1' or as 'leftsid')
-      -- @IO:C64 $D460-$D47F = SID#4 (internally known as 'left SID #2' or as 'backsid')
+      -- @IO:C64 $D460-$D47F = SID#4 (internally known as 'left SID #2' or as 'frontsid')
       -- @IO:C64 $D480-$D4FF = repeated images of SIDs
       -- Presumably repeated through to $D5FF.  But we will repeat to $D4FF only
       -- so that we can use $D500-$D5FF for other stuff.
+      -- $FFD05xx swaps left and right groups for compatibility with some dual SID music
       case address(19 downto 8) is
-        when x"D04" | x"D14" | x"D24" | x"D34" | x"D05" | x"650" =>
-          leftsid_cs <= ((address(6) and not address(5)) xor address(8)) and lscs_en;
-          rightsid_cs <= (((not address(6)) and not address(5)) xor address(8)) and rscs_en;
-          frontsid_cs <= ((address(6) and address(5)) xor address(8)) and lscs_en;
-          backsid_cs <= (((not address(6)) and address(5)) xor address(8)) and rscs_en;
+        when x"D04" | x"D14" | x"D24" | x"D34" | x"650" =>
+          leftsid_cs <= (address(6) and not address(5)) and lscs_en;  -- $40-5F
+          rightsid_cs <= ((not address(6)) and not address(5)) and rscs_en;  -- $00-1F 
+          frontsid_cs <= (address(6) and address(5)) and lscs_en;  -- $60-$7F
+          backsid_cs <= ((not address(6)) and address(5)) and rscs_en;  -- $20-3F
+        when x"D05" =>                  -- SIDs are mirrored here, order is 3,4,1,2
+          rightsid_cs <= (address(6) and not address(5)) and rscs_en;  -- $40-5F
+          leftsid_cs <= ((not address(6)) and not address(5)) and lscs_en;  -- $00-1F 
+          backsid_cs <= (address(6) and address(5)) and rscs_en;  -- $60-$7F
+          frontsid_cs <= ((not address(6)) and address(5)) and lscs_en;  -- $20-3F
         when others => leftsid_cs <= '0'; rightsid_cs <= '0'; frontsid_cs <= '0'; backsid_cs <= '0';
       end case;
 
