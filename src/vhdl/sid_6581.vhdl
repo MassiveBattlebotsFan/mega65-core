@@ -657,9 +657,9 @@ begin
                 -- @IO:GS $D416 SID:FLTR!CUTFRQHI@FLTR!CUTFRQHI Filter Cutoff Frequency High
                 -- @IO:GS $D417.7-4 SID:FLTR!RESON@FLTR!RESON Filter Resonance
                 -- @IO:GS $D417.3 SID:FLTR!EXTINP@FLTR!EXTINP Filter External Input
-                -- @IO:GS $D417.2 SID:FLTR!V1OUT@FLTR!VXOUT Filter Voice X Output
+                -- @IO:GS $D417.2 SID:FLTR!V3OUT@FLTR!VXOUT Filter Voice X Output
                 -- @IO:GS $D417.1 SID:FLTR!V2OUT @FLTR!VXOUT
-                -- @IO:GS $D417.0 SID:FLTR!V3OUT @FLTR!VXOUT
+                -- @IO:GS $D417.0 SID:FLTR!V1OUT @FLTR!VXOUT
                 -- @IO:GS $D418.7 SID:FLTR!CUTV3 Filter Cut-Off Voice 3 Output (1 = off)
                 -- @IO:GS $D418.6 SID:FLTR!HIPASS Filter High-Pass Mode
                 -- @IO:GS $D418.5 SID:FLTR!BDPASS Filter Band-Pass Mode
@@ -699,8 +699,8 @@ begin
               when others	=>	null;
             end case;
 
-            -- @IO:GS $D41D SID:PANLEFT SID left channel volume (requires $D63C.4 SuperSID set)
-            -- @IO:GS $D41E SID:PANRIGHT SID right channel volume (requires $D63C.4 SuperSID set)
+            -- @IO:GS $D41D SID:SUPER!SID-PAN!LEFT SID left channel volume (requires SUPERSID bit set)
+            -- @IO:GS $D41E SID:SUPER!SID-PAN!RIGHT SID right channel volume (requires SUPERSID bit set)
             if supersid = '1' then
               case addr is
                 when "11101" => reg_pan_left <= di;
