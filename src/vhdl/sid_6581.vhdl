@@ -699,8 +699,8 @@ begin
               when others	=>	null;
             end case;
 
-            -- @IO:GS $D41D SID:SUPER!SID-PAN!LEFT SID left channel volume (requires SUPERSID bit set)
-            -- @IO:GS $D41E SID:SUPER!SID-PAN!RIGHT SID right channel volume (requires SUPERSID bit set)
+            -- @IO:GS $D41D SID:SID!PAN!LEFT SID left channel volume (requires SIDEXENA set)
+            -- @IO:GS $D41E SID:SID!PAN!RIGHT SID right channel volume (requires SIDEXENA set)
             if supersid = '1' then
               case addr is
                 when "11101" => reg_pan_left <= di;

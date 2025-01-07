@@ -1,12 +1,11 @@
 C64 $0000000 6510/45GS10 CPU port DDR
-C64 $0000000 CPU:PORTDDR 6510/45GS10 CPU port DDR
-GS  $0000000 Write 65 to force fullspeed, 64 for normal
-C64 $0000001.2-0 Processor port memory mapper
+C64 $0000000 CPU:PORTDDR 6510/45GS10 CPU port DDR. Write 65 to force 40MHz mode, or 64 to re-enable normal speed controls.
+C64 $0000001.0-2 CPU:C64MAP Processor port memory mapper
 C64 $0000001.3 Datasette output signal level (NYI?)
 C64 $0000001.4 Datasette button status, 0 = button pressed, 1 = no button pressed (NYI?)
 C64 $0000001.5 Datasette motor control, 0 = on, 1 = off (NYI?)
 C64 $0000001 6510/45GS10 CPU port data
-C64 $0000001.7-6 Unused
+C64 $0000001.6-7 Unused
 C64 $0000001 CPU:PORT 6510/45GS10 CPU port data
 C64 $0000002-$000FFFF - 64KB RAM
 C65 $0010000-$001FFFF - 64KB RAM
@@ -432,9 +431,9 @@ GS $D414.3-0 SID:ENV3!RELDUR @ENVX!RELDUR
 GS $D414.7-4 SID:ENV3!LEVDUR @ENVX!SUSLEV
 GS $D415 SID:FLTR!CUTFRQLO@FLTR!CUTFRQLO Filter Cutoff Frequency Low
 GS $D416 SID:FLTR!CUTFRQHI@FLTR!CUTFRQHI Filter Cutoff Frequency High
-GS $D417.0 SID:FLTR!V3OUT @FLTR!VXOUT
+GS $D417.0 SID:FLTR!V1OUT @FLTR!VXOUT
 GS $D417.1 SID:FLTR!V2OUT @FLTR!VXOUT
-GS $D417.2 SID:FLTR!V1OUT@FLTR!VXOUT Filter Voice X Output
+GS $D417.2 SID:FLTR!V3OUT@FLTR!VXOUT Filter Voice X Output
 GS $D417.3 SID:FLTR!EXTINP@FLTR!EXTINP Filter External Input
 GS $D417.7-4 SID:FLTR!RESON@FLTR!RESON Filter Resonance
 GS $D418.0-3 SID:FLTR!VOL Filter Output Volume
@@ -446,11 +445,11 @@ GS $D419 SID:PADDLE1 Analog/Digital Converter: Game Paddle 1 (0-255)
 GS $D41A SID:PADDLE2 Analog/Digital Converter Game Paddle 2 (0-255)
 GS $D41B SID:OSC3RNG Oscillator 3 Random Number Generator
 GS $D41C SID:ENV3OUT Envelope Generator 3 Output
-GS $D41D SID:SUPERSID!PANLEFT SID left channel volume
-GS $D41E SID:SUPERSID!PANRIGHT SID right channel volume
+GS $D41D SID:SID!PAN!LEFT SID left channel volume (requires SIDEXENA set)
+GS $D41E SID:SID!PAN!RIGHT SID right channel volume (requires SIDEXENA set)
 C64 $D420-$D43F = SID#2 (internally known as 'right SID #2' or as 'backsid')
 C64 $D440-$D45F = SID#3 (internally known as 'left SID #1' or as 'leftsid')
-C64 $D460-$D47F = SID#4 (internally known as 'left SID #2' or as 'backsid')
+C64 $D460-$D47F = SID#4 (internally known as 'left SID #2' or as 'frontsid')
 C64 $D480-$D4FF = repeated images of SIDs
 GS $D4 ETHCOMMAND:DEBUGVIC Select VIC-IV debug stream via ethernet when \$D6E1.3 is set
 C65 $D600 UART:DATA UART data register (read or write)
@@ -603,7 +602,7 @@ GS $D639 AUXFPGA:FWGIT0 2nd byte of Auxilliary (MAX10) FPGA design git commit
 GS $D63A AUXFPGA:FWGIT0 3rd byte of Auxilliary (MAX10) FPGA design git commit
 GS $D63B AUXFPGA:FWGIT0 MSB of Auxilliary (MAX10) FPGA design git commit
 GS $D63C.0-3 SID:SIDMODE Select SID mode: 0=6581, 1=8580
-GS $D63C.4 SID:SUPERSID Enable extra SID registers
+GS $D63C.4 SID:SID!EX!ENA Enable extra SID registers
 GS $D63C.5-7 DEBUG:RESETSRC Source of last CPU reset
 GS $D63D AUDIOMIX:DCTIME Audio mixer DC-estimation time step. Lower values = faster updating of DC estimation, at the cost of making low-frequencies quieter.
 GS $D640 CPU:HTRAP00@HTRAPXX Writing triggers hypervisor trap \$XX
@@ -1544,10 +1543,6 @@ GS $F1 ETHCOMMAND:FRAME1K Select ~1KiB frames for video/cpu debug stream frames 
 GS $F2 ETHCOMMAND:FRAME2K Select ~2KiB frames for video/cpu debug stream frames, for optimal performance.
 GS $FF60000-$FF60FFF - SID filter coefficient table
 GS $FF60000-$FF6FFFF SUMMARY:SIDDEBUG SID register loopback and filter table debug area
-GS $FF61000-$FF61FFF - SuperSID wavetable 1 (NYI)
-GS $FF62000-$FF62FFF - SuperSID wavetable 2 (NYI)
-GS $FF63000-$FF63FFF - SuperSID wavetable 3 (NYI)
-GS $FF64000-$FF64FFF - SuperSID wavetable 4 (NYI)
 GS $FF65000-$FF6507F - SID register loopback
 GS $FF65080-$FF65FFF - Reserved register loopback
 GS $FF66000-$FF6FFFF - Reserved

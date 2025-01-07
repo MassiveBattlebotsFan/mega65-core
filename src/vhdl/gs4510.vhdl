@@ -2151,7 +2151,7 @@ begin
       shadow_write_flags(1) <= '1';
 
       report "MEMORY long_address = $" & to_hstring(long_address);
-      -- @IO:C64 $0000000 CPU:PORTDDR 6510/45GS10 CPU port DDR, 65 forces fullspeed, 64 resets fullspeed
+      -- @IO:C64 $0000000 CPU:PORTDDR 6510/45GS10 CPU port DDR. Write 65 to force 40MHz mode, or 64 to re-enable normal speed controls.
       -- @IO:C64 $0000001 CPU:PORT 6510/45GS10 CPU port data
       -- @IO:C64 $0000001.0-2 CPU:C64MAP Processor port memory mapper
       -- @IO:C64 $0000001.3 Datasette output signal level (NYI?)

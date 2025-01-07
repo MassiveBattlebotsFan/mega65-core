@@ -2223,10 +2223,10 @@ begin
       end case;
 
       -- @IO:GS $FF60000-$FF60FFF - SID filter coefficient table
-      -- @IO:GS $FF61000-$FF61FFF - SuperSID wavetable 1 (NYI)
-      -- @IO:GS $FF62000-$FF62FFF - SuperSID wavetable 2 (NYI)
-      -- @IO:GS $FF63000-$FF63FFF - SuperSID wavetable 3 (NYI)
-      -- @IO:GS $FF64000-$FF64FFF - SuperSID wavetable 4 (NYI)
+      -- $FF61000-$FF61FFF - SuperSID wavetable 1 (NYI)
+      -- $FF62000-$FF62FFF - SuperSID wavetable 2 (NYI)
+      -- $FF63000-$FF63FFF - SuperSID wavetable 3 (NYI)
+      -- $FF64000-$FF64FFF - SuperSID wavetable 4 (NYI)
       -- @IO:GS $FF65000-$FF6507F - SID register loopback
       -- @IO:GS $FF65080-$FF65FFF - Reserved register loopback
       -- @IO:GS $FF66000-$FF6FFFF - Reserved
