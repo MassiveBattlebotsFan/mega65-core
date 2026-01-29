@@ -3686,6 +3686,7 @@ begin
       if inborder='1' or (bitplane_mode='1' and viciv_bitplane_chargen_on='0') then
         pixel_colour <= border_colour;
         pixel_alpha <= x"FF";
+        pixel_alt_palette <= '0';       -- Force main palette in border
         report "VICIV: Drawing border" severity note;
       elsif chargen_active='0' then
         pixel_colour <= screen_colour;
