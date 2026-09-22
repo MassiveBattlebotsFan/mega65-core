@@ -244,7 +244,8 @@ begin
 			when 10 =>
 				w.state := 11;
 				-- Add mixer DC
-				w.Vf := r.Vf + to_signed(mixer_DC, r.Vf'LENGTH);
+                                -- M3wP patch: Disabled due to being questionable at the moment
+				-- w.Vf := r.Vf + to_signed(mixer_DC, r.Vf'LENGTH);
 
 			when 11 =>
 				w.state := 12;

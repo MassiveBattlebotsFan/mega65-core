@@ -33,7 +33,7 @@ entity sid_voice is
     PA_MSB_out		: out	std_logic;							-- Phase Accumulator MSB output
     Osc				: out	unsigned(7 downto 0);	-- Voice waveform register
     Env				: out	unsigned(7 downto 0);	-- Voice envelope register
-    voice				: out	unsigned(11 downto 0)	-- Voice waveform, this is the actual audio signal
+    voice				: out	signed(11 downto 0)	-- Voice waveform, this is the actual audio signal
     );
 end sid_voice;
 
@@ -82,7 +82,7 @@ architecture Behavioral of sid_voice is
   signal 	divider_value				: integer range 0 to 2**15 - 1 :=0;
   signal 	divider_attack				: integer range 0 to 2**15 - 1 :=0;
   signal 	divider_dec_rel			: integer range 0 to 2**15 - 1 :=0;
-  signal 	divider_counter			: integer range 0 to 2**18 - 1 :=0;
+  signal 	divider_counter			: integer range 0 to 2**19 - 1 :=0;
   signal 	exp_table_value			: integer range 0 to 2**18 - 1 :=0;
   signal 	exp_table_active			: std_logic := '0';
   signal 	divider_rst 				: std_logic := '0';
@@ -99,7 +99,7 @@ architecture Behavioral of sid_voice is
   signal	signal_mux_clamped			        : unsigned(11 downto 0) := (others => '0');
   signal	signal_mux_last					: unsigned(11 downto 0) := (others => '0');
   signal	signal_mux					: unsigned(11 downto 0) := (others => '0');
-  signal	signal_vol					: unsigned(19 downto 0) := (others => '0');
+  signal	signal_vol					: signed(20 downto 0) := (others => '0');
   
   -------------------------------------------------------------------------------------
   
@@ -138,7 +138,7 @@ begin
   frequency	<= Freq_hi & Freq_lo;
   -- use the register value to fill the variable
   pulsewidth 	<= Pw_hi(3 downto 0) & Pw_lo;
-  --
+  -- Should be safe to drop the MSB of signal_vol since env_counter is sign-extended
   voice							<= signal_vol(19 downto 8);
   
   -- Phase accumulator :
@@ -324,9 +324,11 @@ begin
           end if;
 
           signal_mux <= signal_mux_var;
-          if Control(5) = '1' then
-            accumulator(23) := signal_mux_var(11);
-          end if;
+          
+          -- Disabled since this is a 6581-specific behavior
+          -- if Control(5) = '1' then
+          --   accumulator(23) := signal_mux_var(11);
+          -- end if;
         end if;
         -----------------------------------------------------------------------------------------------------------------
         -- Waveform envelope (volume) control
@@ -374,7 +376,9 @@ begin
         --calculate the resulting volume (due to the envelope generator) of the
         --voice, signal_mux(12bit) * env_counter(8bit), so the result will
         --require 20 bits !!
-        signal_vol	<= signal_mux_clamped * env_counter;
+        -- M3wP patch: SID voice idles at ~midrange, and wave selector output is full range, so
+        --  subtract the midpoint from the signal to shift it down.
+        signal_vol	<= (signed(signal_mux_clamped) - x"800") * signed('0' & env_counter);
 
         accumulator_latch <= accumulator;
         
